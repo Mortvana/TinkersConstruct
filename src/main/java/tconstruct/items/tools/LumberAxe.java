@@ -1,27 +1,25 @@
 package tconstruct.items.tools;
 
+import cpw.mods.fml.relauncher.*;
 import mantle.world.WorldHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import tconstruct.library.ActiveToolMod;
-import tconstruct.library.TConstructRegistry;
-import tconstruct.library.tools.AbilityHelper;
-import tconstruct.library.tools.HarvestTool;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.BlockEvent;
+import tconstruct.library.*;
+import tconstruct.library.tools.*;
 import tconstruct.tools.TinkerTools;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
-public class LumberAxe extends HarvestTool
+public class LumberAxe extends AOEHarvestTool
 {
     public LumberAxe()
     {
-        super(0);
+        super(0, 1,1);
         this.setUnlocalizedName("InfiTool.LumberAxe");
     }
 
@@ -50,12 +48,6 @@ public class LumberAxe extends HarvestTool
     }
 
     @Override
-    public String getToolName ()
-    {
-        return "Lumber Axe";
-    }
-
-    @Override
     public boolean onBlockDestroyed (ItemStack itemstack, World world, Block block, int x, int y, int z, EntityLivingBase player)
     {
         if (block != null && block.getMaterial() == Material.leaves)
@@ -79,122 +71,77 @@ public class LumberAxe extends HarvestTool
      */
 
     @Override
-    public float getDigSpeed (ItemStack stack, Block block, int meta)
+    public float breakSpeedModifier ()
     {
-        if (!stack.hasTagCompound())
-            return 1.0f;
+        return 0.4f;
+    }
 
-        NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
-        if (tags.getBoolean("Broken"))
-            return 0.1f;
-
-        Material[] materials = getEffectiveMaterials();
-        for (int i = 0; i < materials.length; i++)
-        {
-            if (materials[i] == block.getMaterial())
-            {
-                float mineSpeed = tags.getInteger("MiningSpeed");
-                int heads = 1;
-                if (tags.hasKey("MiningSpeed2"))
-                {
-                    mineSpeed += tags.getInteger("MiningSpeed2");
-                    heads++;
-                }
-
-                if (tags.hasKey("MiningSpeedHandle"))
-                {
-                    mineSpeed += tags.getInteger("MiningSpeedHandle");
-                    heads++;
-                }
-
-                if (tags.hasKey("MiningSpeedExtra"))
-                {
-                    mineSpeed += tags.getInteger("MiningSpeedExtra");
-                    heads++;
-                }
-                float trueSpeed = mineSpeed / (heads * 300f);
-                int hlvl = block.getHarvestLevel(meta);
-                int durability = tags.getInteger("Damage");
-
-                float stonebound = tags.getFloat("Shoddy");
-                float bonusLog = (float) Math.log(durability / 72f + 1) * 2 * stonebound;
-                trueSpeed += bonusLog;
-
-                if (hlvl <= tags.getInteger("HarvestLevel"))
-                    return trueSpeed;
-                return 0.1f;
-            }
-        }
-        return super.getDigSpeed(stack, block, meta);
+    @Override
+    public float stoneboundModifier ()
+    {
+        return 216f;
     }
 
     @Override
     public boolean onBlockStartBreak (ItemStack stack, int x, int y, int z, EntityPlayer player)
     {
-        if (!stack.hasTagCompound())
-            return false;
+        if (!stack.hasTagCompound() || player.isSneaking())
+            return super.onBlockStartBreak(stack, x, y, z, player);
 
         World world = player.worldObj;
         final Block wood = world.getBlock(x, y, z);
-        ;
-        if (wood == null)
-        {
-            return super.onBlockStartBreak(stack, x, y, z, player);
-        }
-        if (wood.isWood(world, x, y, z) || wood.getMaterial() == Material.sponge)
-        {
-            int height = y;
-            boolean foundTop = false;
-            do
-            {
-                height++;
-                Block block = world.getBlock(x, height, z);
-                if (block != wood)
-                {
-                    height--;
-                    foundTop = true;
-                }
-            } while (!foundTop);
 
-            int numLeaves = 0;
-            if (height - y < 50)
-            {
-                for (int xPos = x - 1; xPos <= x + 1; xPos++)
-                {
-                    for (int yPos = height - 1; yPos <= height + 1; yPos++)
-                    {
-                        for (int zPos = z - 1; zPos <= z + 1; zPos++)
-                        {
-                            Block leaves = world.getBlock(xPos, yPos, zPos);
-                            if (leaves != null && leaves.isLeaves(world, xPos, yPos, zPos))
-                                numLeaves++;
-                        }
-                    }
-                }
+        if (wood == null)
+            return super.onBlockStartBreak(stack, x, y, z, player);
+
+        if (wood.isWood(world, x, y, z) || wood.getMaterial() == Material.sponge)
+            if(detectTree(world, x,y,z, wood)) {
+                NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
+                int meta = world.getBlockMetadata(x, y, z);
+                breakTree(world, x, y, z, stack, tags, wood, meta, player);
+                // custom block breaking code, don't call vanilla code
+                return true;
             }
 
-            NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
-            int meta = world.getBlockMetadata(x, y, z);
-            if (numLeaves > 3)
-                breakTree(world, x, y, z, stack, tags, wood, meta, player);
-            else
-                destroyWood(world, x, y, z, stack, tags, player);
-
-            if (!world.isRemote)
-                world.playAuxSFX(2001, x, y, z, Block.getIdFromBlock(wood) + (meta << 12));
-        }
-        else if (wood.getMaterial() == Material.wood)
-        {
-            NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
-            int meta = world.getBlockMetadata(x, y, z);
-            destroyWood(world, x, y, z, stack, tags, player);
-            if (!world.isRemote)
-                world.playAuxSFX(2001, x, y, z, Block.getIdFromBlock(wood) + (meta << 12));
-        }
         return super.onBlockStartBreak(stack, x, y, z, player);
     }
 
-    void breakTree (World world, int x, int y, int z, ItemStack stack, NBTTagCompound tags, Block bID, int meta, EntityPlayer player)
+    private boolean detectTree(World world, int x, int y, int z, Block wood)
+    {
+        int height = y;
+        boolean foundTop = false;
+        do
+        {
+            height++;
+            Block block = world.getBlock(x, height, z);
+            if (block != wood)
+            {
+                height--;
+                foundTop = true;
+            }
+        } while (!foundTop);
+
+        int numLeaves = 0;
+        if (height - y < 50)
+        {
+            for (int xPos = x - 1; xPos <= x + 1; xPos++)
+            {
+                for (int yPos = height - 1; yPos <= height + 1; yPos++)
+                {
+                    for (int zPos = z - 1; zPos <= z + 1; zPos++)
+                    {
+                        Block leaves = world.getBlock(xPos, yPos, zPos);
+                        if (leaves != null && leaves.isLeaves(world, xPos, yPos, zPos))
+                            numLeaves++;
+                    }
+                }
+            }
+        }
+
+        return numLeaves > 3;
+    }
+
+    private void breakTree (World world, int x, int y, int z, ItemStack stack, NBTTagCompound tags, Block bID, int meta, EntityPlayer player)
     {
         for (int xPos = x - 1; xPos <= x + 1; xPos++)
         {
@@ -220,6 +167,12 @@ public class LumberAxe extends HarvestTool
                                         cancelHarvest = true;
                                 }
 
+                                // send blockbreak event
+                                BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(x, y, z, world, localBlock, localMeta, player);
+                                event.setCanceled(cancelHarvest);
+                                MinecraftForge.EVENT_BUS.post(event);
+                                cancelHarvest = event.isCanceled();
+
                                 if (cancelHarvest)
                                 {
                                     breakTree(world, xPos, yPos, zPos, stack, tags, bID, meta, player);
@@ -228,41 +181,16 @@ public class LumberAxe extends HarvestTool
                                 {
                                     if (localBlock == bID && localMeta % 4 == meta % 4)
                                     {
-                                        /*
-                                         * world.setBlock(xPos, yPos, zPos, 0,
-                                         * 0, 3); if
-                                         * (!player.capabilities.isCreativeMode)
-                                         * {
-                                         * Block.blocksList[bID].harvestBlock(world
-                                         * , player, xPos, yPos, zPos, meta);
-                                         * onBlockDestroyed(stack, world, bID,
-                                         * xPos, yPos, zPos, player); }
-                                         */
                                         if (!player.capabilities.isCreativeMode)
                                         {
-                                            mineBlock(world, xPos, yPos, zPos, localMeta, player, localBlock);
+                                            localBlock.harvestBlock(world, player, x,y,z, localMeta);
                                             onBlockDestroyed(stack, world, localBlock, xPos, yPos, zPos, player);
                                         }
-                                        else
-                                        {
-                                            WorldHelper.setBlockToAir(world, xPos, yPos, zPos);
-                                        }
+
+                                        world.setBlockToAir(xPos, yPos, zPos);
                                         if (!world.isRemote)
                                             breakTree(world, xPos, yPos, zPos, stack, tags, bID, meta, player);
                                     }
-                                    /*
-                                     * else { Block leaves =
-                                     * Block.blocksList[localID]; if (leaves !=
-                                     * null && leaves.isLeaves(world, xPos,
-                                     * yPos, zPos)) {
-                                     * WorldHelper.setBlockToAir(world, xPos,
-                                     * yPos, zPos); if
-                                     * (!player.capabilities.isCreativeMode) {
-                                     * Block.blocksList[bID].harvestBlock(world,
-                                     * player, xPos, yPos, zPos, meta);
-                                     * onBlockDestroyed(stack, world, bID, xPos,
-                                     * yPos, zPos, player); } } }
-                                     */
                                 }
                             }
                         }
@@ -271,51 +199,6 @@ public class LumberAxe extends HarvestTool
             }
         }
     }
-
-    void destroyWood (World world, int x, int y, int z, ItemStack stack, NBTTagCompound tags, EntityPlayer player)
-    {
-        for (int xPos = x - 1; xPos <= x + 1; xPos++)
-        {
-            for (int yPos = y - 1; yPos <= y + 1; yPos++)
-            {
-                for (int zPos = z - 1; zPos <= z + 1; zPos++)
-                {
-                    if (!(tags.getBoolean("Broken")))
-                    {
-                        Block localBlock = world.getBlock(xPos, yPos, zPos);
-                        int localMeta = world.getBlockMetadata(xPos, yPos, zPos);
-                        int hlvl = localBlock.getHarvestLevel(localMeta);
-                        float localHardness = localBlock == null ? Float.MAX_VALUE : localBlock.getBlockHardness(world, xPos, yPos, zPos);
-
-                        if (localBlock != null && localBlock.getMaterial() == Material.wood && !(localHardness < 0))
-                        {
-                            if (hlvl <= tags.getInteger("HarvestLevel"))
-                            {
-                                boolean cancelHarvest = false;
-                                for (ActiveToolMod mod : TConstructRegistry.activeModifiers)
-                                {
-                                    if (mod.beforeBlockBreak(this, stack, xPos, yPos, zPos, player))
-                                        cancelHarvest = true;
-                                }
-
-                                if (!cancelHarvest)
-                                {
-                                    if (!player.capabilities.isCreativeMode)
-                                    {
-                                        mineBlock(world, xPos, yPos, zPos, localMeta, player, localBlock);
-                                        onBlockDestroyed(stack, world, localBlock, xPos, yPos, zPos, player);
-                                    }
-                                    WorldHelper.setBlockToAir(world, xPos, yPos, zPos);
-                                    world.func_147479_m(xPos, yPos, zPos);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     @Override
     public Item getHeadItem ()
     {

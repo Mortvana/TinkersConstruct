@@ -1,20 +1,17 @@
 package tconstruct.blocks.slime;
 
-import java.util.List;
-import java.util.Random;
-
+import cpw.mods.fml.relauncher.*;
+import java.util.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.IIcon;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.BlockFluidClassic;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.*;
 import tconstruct.world.TinkerWorld;
 import tconstruct.world.entity.BlueSlime;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import tconstruct.world.entity.KingBlueSlime;
+import tconstruct.world.entity.SlimeBase;
 
 public class SlimeFluid extends BlockFluidClassic
 {
@@ -51,9 +48,13 @@ public class SlimeFluid extends BlockFluidClassic
         super.updateTick(world, x, y, z, rand);
         if (rand.nextInt(100) == 0 && world.getBlockMetadata(x, y, z) == 0 && world.checkNoEntityCollision(AxisAlignedBB.getBoundingBox(x - 1, y - 1, z - 1, x + 2, y + 2, z + 2)))
         {
-            BlueSlime entityslime = new BlueSlime(world);
-            entityslime.setPosition((double) x + 0.5D, (double) y + 1.5D, (double) z + 0.5D);
-            world.spawnEntityInWorld(entityslime);
+            SlimeBase slime;
+            if(rand.nextInt(300) == 0)
+                slime = new KingBlueSlime(world);
+            else
+                slime = new BlueSlime(world);
+            slime.setPosition((double) x + 0.5D, (double) y + 1.5D, (double) z + 0.5D);
+            world.spawnEntityInWorld(slime);
         }
     }
 

@@ -2,16 +2,17 @@ package tconstruct.tools.logic;
 
 import mantle.blocks.abstracts.InventoryLogic;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-import tconstruct.tools.TinkerTools;
+import tconstruct.library.crafting.StencilBuilder;
 import tconstruct.tools.inventory.PatternShaperContainer;
 
 public class StencilTableLogic extends InventoryLogic implements ISidedInventory
 {
+    private ItemStack selectedStack;
+
     public StencilTableLogic()
     {
         super(2);
@@ -43,16 +44,19 @@ public class StencilTableLogic extends InventoryLogic implements ISidedInventory
     	super.onInventoryChanged();
     }*/
 
+    public void setSelectedPattern (ItemStack stack)
+    {
+        selectedStack = stack;
+        this.setInventorySlotContents(1, stack);
+    }
+
     @Override
     public void setInventorySlotContents (int slot, ItemStack itemstack)
     {
         super.setInventorySlotContents(slot, itemstack);
-        if (slot == 0 && itemstack != null && itemstack.getItem() == TinkerTools.blankPattern)//instanceof tconstruct.items.Pattern)
+        if (slot == 0 && itemstack != null && StencilBuilder.isBlank(itemstack))
         {
-            if (itemstack.getItemDamage() == 0)
-                setInventorySlotContents(1, new ItemStack(TinkerTools.woodPattern, 1, 1));
-            /*else if (itemstack.getItemDamage() == 1)
-                setInventorySlotContents(1, new ItemStack(TContent.metalPattern, 1, 0));*/
+            setInventorySlotContents(1, selectedStack);
         }
     }
 

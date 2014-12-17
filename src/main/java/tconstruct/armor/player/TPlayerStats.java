@@ -1,34 +1,37 @@
 package tconstruct.armor.player;
 
 import java.lang.ref.WeakReference;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
+import tconstruct.api.IPlayerExtendedInventoryWrapper;
 
-public class TPlayerStats implements IExtendedEntityProperties //TODO: IExtendedEntityProperties is not appropriate!
+public class TPlayerStats implements IExtendedEntityProperties, IPlayerExtendedInventoryWrapper //TODO: IExtendedEntityProperties is not appropriate!
 {
     public static final String PROP_NAME = "TConstruct";
 
     public WeakReference<EntityPlayer> player;
-    
+
     public int level;
     public int bonusHealth;
     public int damage;
     public int hunger;
     public int previousDimension;
-    public int mineSpeed;
-    
+
     public boolean climbWalls;
-    public boolean activeGoggles = true;
-    
+    public boolean activeGoggles = false;
+
     public boolean beginnerManual;
     public boolean materialManual;
     public boolean smelteryManual;
     public boolean battlesignBonus;
-    
+
+    // death-penality
+    public int derpLevel;
+
     public ArmorExtended armor;
     public KnapsackInventory knapsack;
 
@@ -45,6 +48,8 @@ public class TPlayerStats implements IExtendedEntityProperties //TODO: IExtended
 
         this.knapsack = new KnapsackInventory();
         this.knapsack.init(entityplayer);
+
+        this.derpLevel = 1;
     }
 
     @Override
@@ -57,6 +62,7 @@ public class TPlayerStats implements IExtendedEntityProperties //TODO: IExtended
         tTag.setBoolean("materialManual", this.materialManual);
         tTag.setBoolean("smelteryManual", this.smelteryManual);
         tTag.setBoolean("battlesignBonus", this.battlesignBonus);
+        tTag.setInteger("derpLevel", this.derpLevel);
         compound.setTag(PROP_NAME, tTag);
     }
 
@@ -71,14 +77,18 @@ public class TPlayerStats implements IExtendedEntityProperties //TODO: IExtended
         this.materialManual = properties.getBoolean("materialManual");
         this.smelteryManual = properties.getBoolean("smelteryManual");
         this.battlesignBonus = properties.getBoolean("battlesignBonus");
+        this.derpLevel = properties.getInteger("derpLevel");
     }
 
     @Override
     public void init (Entity entity, World world)
     {
+        this.player = new WeakReference<EntityPlayer>((EntityPlayer) entity);
+        this.armor.init((EntityPlayer) entity);
+        this.knapsack.init((EntityPlayer) entity);
     }
 
-    public void copyFrom(TPlayerStats stats, boolean copyCalc)
+    public void copyFrom (TPlayerStats stats, boolean copyCalc)
     {
         this.armor = stats.armor;
         this.knapsack = stats.knapsack;
@@ -87,7 +97,10 @@ public class TPlayerStats implements IExtendedEntityProperties //TODO: IExtended
         this.smelteryManual = stats.smelteryManual;
         this.battlesignBonus = stats.battlesignBonus;
 
-        if (copyCalc) {
+        this.derpLevel = stats.derpLevel;
+
+        if (copyCalc)
+        {
             this.bonusHealth = stats.bonusHealth;
             this.hunger = stats.hunger;
             this.level = stats.level;
@@ -102,6 +115,18 @@ public class TPlayerStats implements IExtendedEntityProperties //TODO: IExtended
     public static final TPlayerStats get (EntityPlayer player)
     {
         return (TPlayerStats) player.getExtendedProperties(PROP_NAME);
+    }
+
+    @Override
+    public IInventory getKnapsackInventory (EntityPlayer player)
+    {
+        return this.knapsack;
+    }
+
+    @Override
+    public IInventory getAccessoryInventory (EntityPlayer player)
+    {
+        return this.armor;
     }
 
 }

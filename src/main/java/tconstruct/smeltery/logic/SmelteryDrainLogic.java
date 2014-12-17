@@ -2,17 +2,14 @@ package tconstruct.smeltery.logic;
 
 import mantle.blocks.abstracts.MultiServantLogic;
 import mantle.blocks.iface.IFacingLogic;
+import mantle.world.CoordTuple;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
+import net.minecraft.network.*;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTankInfo;
-import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fluids.*;
 
 public class SmelteryDrainLogic extends MultiServantLogic implements IFluidHandler, IFacingLogic
 {
@@ -29,15 +26,8 @@ public class SmelteryDrainLogic extends MultiServantLogic implements IFluidHandl
     {
         if (hasValidMaster() && resource != null && canFill(from, resource.getFluid()))
         {
-            if (doFill)
-            {
-                SmelteryLogic smeltery = (SmelteryLogic) worldObj.getTileEntity(getMasterPosition().x, getMasterPosition().y, getMasterPosition().z);
-                return smeltery.fill(resource, doFill);
-            }
-            else
-            {
-                return resource.amount;
-            }
+            SmelteryLogic smeltery = (SmelteryLogic) worldObj.getTileEntity(getMasterPosition().x, getMasterPosition().y, getMasterPosition().z);
+            return smeltery.fill(resource, doFill);
         }
         else
         {
@@ -53,16 +43,20 @@ public class SmelteryDrainLogic extends MultiServantLogic implements IFluidHandl
             SmelteryLogic smeltery = (SmelteryLogic) worldObj.getTileEntity(getMasterPosition().x, getMasterPosition().y, getMasterPosition().z);
             return smeltery.drain(maxDrain, doDrain);
         }
-        else
-        {
-            return null;
-        }
+        return null;
     }
 
     @Override
     public FluidStack drain (ForgeDirection from, FluidStack resource, boolean doDrain)
     {
-        // TODO Auto-generated method stub
+        if (hasValidMaster() && canDrain(from, resource.getFluid()))
+        {
+            SmelteryLogic smeltery = (SmelteryLogic) worldObj.getTileEntity(getMasterPosition().x, getMasterPosition().y, getMasterPosition().z);
+            if (resource.getFluid() == smeltery.getFluid().getFluid())
+            {
+                return smeltery.drain(resource.amount, doDrain);
+            }
+        }
         return null;
     }
 
@@ -78,6 +72,9 @@ public class SmelteryDrainLogic extends MultiServantLogic implements IFluidHandl
     {
         // Check that the drain is coming from the from the front of the block
         // and that the fluid to be drained is in the smeltery.
+        if(!hasValidMaster())
+            return false;
+            
         boolean containsFluid = fluid == null;
         if (fluid != null)
         {
@@ -184,5 +181,12 @@ public class SmelteryDrainLogic extends MultiServantLogic implements IFluidHandl
     {
         readFromNBT(packet.func_148857_g());
         worldObj.func_147479_m(xCoord, yCoord, zCoord);
+    }
+
+    public int comparatorStrength ()
+    {
+        CoordTuple master = this.getMasterPosition();
+        SmelteryLogic smeltery = (SmelteryLogic) worldObj.getTileEntity(master.x, master.y, master.z);
+        return 15 * smeltery.currentLiquid / smeltery.maxLiquid;
     }
 }

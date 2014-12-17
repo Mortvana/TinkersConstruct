@@ -1,28 +1,23 @@
 package tconstruct.tools.items;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.*;
 import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.IEntityLivingData;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Facing;
-import net.minecraft.util.IIcon;
-import net.minecraft.util.StatCollector;
+import net.minecraft.item.*;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 import tconstruct.client.TProxyClient;
 import tconstruct.library.tools.ToolCore;
 import tconstruct.world.entity.BlueSlime;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import tconstruct.world.entity.KingBlueSlime;
 
+// spawn egg.
 public class TitleIcon extends Item
 {
     int[] primaryColor = { 0x66BBE8, 0x66BBE8 };
@@ -36,6 +31,7 @@ public class TitleIcon extends Item
     {
         super();
         this.setCreativeTab(CreativeTabs.tabMisc);
+        this.setHasSubtypes(true);
     }
 
     @Override
@@ -142,7 +138,7 @@ public class TitleIcon extends Item
                 spawnEntity(posX, posY, posZ, new BlueSlime(world), world, player);
                 break;
             case 1:
-                spawnBossSlime(posX, posY, posZ, new BlueSlime(world), world, player);
+                spawnBossSlime(posX, posY, posZ, new KingBlueSlime(world), world, player);
                 break;
             }
             if (!player.capabilities.isCreativeMode)
@@ -175,8 +171,8 @@ public class TitleIcon extends Item
             spawnEntity(posX, posY, posZ, entity, world);
             break;
         case 1:
-            entity = new BlueSlime(world);
-            spawnBossSlime(posX, posY, posZ, new BlueSlime(world), world);
+            entity = new KingBlueSlime(world);
+            spawnBossSlime(posX, posY, posZ, new KingBlueSlime(world), world);
             break;
         }
         return entity;
@@ -204,7 +200,7 @@ public class TitleIcon extends Item
         }
     }
 
-    public static void spawnBossSlime (double x, double y, double z, BlueSlime entity, World world, EntityPlayer player)
+    public static void spawnBossSlime (double x, double y, double z, KingBlueSlime entity, World world, EntityPlayer player)
     {
         if (!world.isRemote)
         {
@@ -215,7 +211,7 @@ public class TitleIcon extends Item
         }
     }
 
-    public static void spawnBossSlime (double x, double y, double z, BlueSlime entity, World world)
+    public static void spawnBossSlime (double x, double y, double z, KingBlueSlime entity, World world)
     {
         if (!world.isRemote)
         {

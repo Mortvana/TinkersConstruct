@@ -1,19 +1,17 @@
 package tconstruct.plugins.te4;
 
+import cpw.mods.fml.common.registry.*;
+import cpw.mods.fml.common.registry.GameRegistry.ObjectHolder;
+import mantle.pulsar.pulse.*;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.oredict.OreDictionary;
-
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.GameRegistry.ObjectHolder;
-import mantle.pulsar.pulse.Handler;
-import mantle.pulsar.pulse.Pulse;
+import net.minecraftforge.oredict.*;
 import tconstruct.TConstruct;
 import tconstruct.tools.TinkerTools;
 import tconstruct.world.TinkerWorld;
 
 @ObjectHolder(TConstruct.modID)
-@Pulse(id = "Tinkers TE4 Compatibility", description = "Tinkers Construct compatibility for Thermal Expansion", modsRequired = "ThermalExpansion")
+@Pulse(id = "Tinkers TE4 Compatibility", description = "Tinkers Construct compatibility for Thermal Expansion", modsRequired = "ThermalExpansion", forced = true)
 public class TinkerTE4
 {
     @Handler
@@ -33,5 +31,9 @@ public class TinkerTE4
 
         TE4Helper.addSmelterRecipe(4000, new ItemStack(TinkerTools.materials, 1, 4), new ItemStack(TinkerTools.materials, 1, 3), new ItemStack(TinkerTools.materials, 1, 5), null, 0);
         TE4Helper.addSmelterRecipe(4000, new ItemStack(TinkerTools.materials, 1, 9), new ItemStack(TinkerTools.materials, 3, 11), new ItemStack(TinkerTools.materials, 4, 14), null, 0);
+
+        // Dust Recipes
+        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(TinkerTools.materials, 1, 41), "dustArdite", "dustCobalt"));
+        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(TinkerTools.materials, 4, 42), "dustAluminum", "dustAluminum", "dustAluminum", "dustCopper"));
     }
 }

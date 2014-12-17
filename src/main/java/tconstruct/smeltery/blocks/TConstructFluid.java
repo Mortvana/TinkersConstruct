@@ -1,12 +1,10 @@
 package tconstruct.smeltery.blocks;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import cpw.mods.fml.relauncher.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.util.IIcon;
-import net.minecraftforge.fluids.BlockFluidClassic;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.*;
 import tconstruct.library.TConstructRegistry;
 
 public class TConstructFluid extends BlockFluidClassic
@@ -15,6 +13,7 @@ public class TConstructFluid extends BlockFluidClassic
     boolean alpha;
     public IIcon stillIcon;
     public IIcon flowIcon;
+    boolean overwriteFluidIcons = true;
 
     public TConstructFluid(Fluid fluid, Material material, String texture)
     {
@@ -40,6 +39,9 @@ public class TConstructFluid extends BlockFluidClassic
     {
         stillIcon = iconRegister.registerIcon("tinker:" + texture);
         flowIcon = iconRegister.registerIcon("tinker:" + texture + "_flow");
+
+        if (overwriteFluidIcons)
+            this.getFluid().setIcons(stillIcon, flowIcon);
     }
 
     @Override
@@ -50,4 +52,10 @@ public class TConstructFluid extends BlockFluidClassic
             return stillIcon;
         return flowIcon;
     }
+
+    public void suppressOverwritingFluidIcons ()
+    {
+        overwriteFluidIcons = false;
+    }
+
 }

@@ -1,30 +1,12 @@
 package tconstruct.library;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import tconstruct.common.TConstructCreativeTab;
-import tconstruct.library.crafting.Detailing;
-import tconstruct.library.crafting.LiquidCasting;
-import tconstruct.library.crafting.ToolBuilder;
+import java.util.*;
+import net.minecraft.item.*;
+import org.apache.logging.log4j.*;
+import tconstruct.library.crafting.*;
 import tconstruct.library.modifier.ActiveArmorMod;
-import tconstruct.library.tools.ArrowMaterial;
-import tconstruct.library.tools.BowMaterial;
-import tconstruct.library.tools.BowstringMaterial;
-import tconstruct.library.tools.CustomMaterial;
-import tconstruct.library.tools.FletchingMaterial;
-import tconstruct.library.tools.ToolCore;
-import tconstruct.library.tools.ToolMaterial;
+import tconstruct.library.tools.*;
 
 /**
  * A registry to store any relevant API work
@@ -115,7 +97,8 @@ public class TConstructRegistry
      * ingot, toolRod, pickaxeHead, shovelHead, hatchetHead, swordBlade,
      * wideGuard, handGuard, crossbar, binding, frypanHead, signHead,
      * knifeBlade, chiselHead, toughRod, toughBinding, largePlate, broadAxeHead,
-     * scytheHead, excavatorHead, largeBlade, hammerHead, fullGuard, bowstring
+     * scytheHead, excavatorHead, largeBlade, hammerHead, fullGuard, bowString,
+     * fletching, arrowHead
      */
     static HashMap<String, ItemStack> itemstackDirectory = new HashMap<String, ItemStack>();
 
@@ -218,7 +201,7 @@ public class TConstructRegistry
      * multiple times the parts are added to the recipe's input list Valid part
      * amounts are 2, 3, and 4.
      * 
-     * @see ToolBuidler
+     * @see ToolBuilder
      * @param output
      *            The ToolCore to craft
      * @param parts
@@ -236,14 +219,30 @@ public class TConstructRegistry
     // Materials
     public static HashMap<Integer, ToolMaterial> toolMaterials = new HashMap<Integer, ToolMaterial>(40);
     public static HashMap<String, ToolMaterial> toolMaterialStrings = new HashMap<String, ToolMaterial>(40);
+    public static List<Integer> defaultToolPartMaterials = new LinkedList<Integer>();
+    public static List<Integer> defaultShardMaterials = new LinkedList<Integer>();
+
+    public static void addDefaultToolPartMaterial(int materialID)
+    {
+        if(!toolMaterials.containsKey(materialID))
+            logger.error("[TCon API] Can't add default toolpart: Material ID " + materialID + " is unknown.");
+        else
+            defaultToolPartMaterials.add(materialID);
+    }
+
+    public static void addDefaultShardMaterial(int materialID)
+    {
+        if(!toolMaterials.containsKey(materialID))
+            logger.error("[TCon API] Can't add default shard: Material ID " + materialID + " is unknown.");
+        else
+            defaultShardMaterials.add(materialID);
+    }
 
     /**
      * Adds a tool material to the registry
      * 
      * @param materialID
      *            Unique ID, stored for each part
-     * @exception materialID
-     *                must be unique
      * @param materialName
      *            Unique name for data lookup purposes
      * @param harvestLevel
@@ -265,13 +264,12 @@ public class TConstructRegistry
      *            Spiny.
      */
 
-    public static void addToolMaterial (int materialID, String materialName, int harvestLevel, int durability, int miningspeed, int attack, float handleModifier, int reinforced, float stonebound,
-            String style, String ability)
+    public static void addToolMaterial (int materialID, String materialName, int harvestLevel, int durability, int miningspeed, int attack, float handleModifier, int reinforced, float stonebound, String style, int primaryColor)
     {
         ToolMaterial mat = toolMaterials.get(materialID);
         if (mat == null)
         {
-            mat = new ToolMaterial(materialName, harvestLevel, durability, miningspeed, attack, handleModifier, reinforced, stonebound, style, ability);
+            mat = new ToolMaterial(materialName, harvestLevel, durability, miningspeed, attack, handleModifier, reinforced, stonebound, style, primaryColor);
             toolMaterials.put(materialID, mat);
             toolMaterialStrings.put(materialName, mat);
         }
@@ -281,15 +279,13 @@ public class TConstructRegistry
 
     /**
      * Adds a tool material to the registry
-     * 
+     *
      * @param materialID
      *            Unique ID, stored for each part
-     * @exception materialID
-     *                must be unique
      * @param materialName
      *            Unique name for data lookup purposes
-     * @param displayName
-     *            Prefix for creative mode tools
+     * @param localizationName
+     *            The string used to localize the material name
      * @param harvestLevel
      *            The materials which the tool can harvest. Pickaxe levels - 0:
      *            Wood, 1: Stone, 2: Redstone/Diamond, 3: Obsidian, 4:
@@ -308,14 +304,12 @@ public class TConstructRegistry
      *            Amount of Stonebound to put on the tool. Negative numbers are
      *            Spiny.
      */
-
-    public static void addToolMaterial (int materialID, String materialName, String displayName, int harvestLevel, int durability, int miningspeed, int attack, float handleModifier, int reinforced,
-            float stonebound, String style, String ability)
+    public static void addToolMaterial (int materialID, String materialName, String localizationName, int harvestLevel, int durability, int miningspeed, int attack, float handleModifier, int reinforced, float stonebound, String style, int primaryColor)
     {
         ToolMaterial mat = toolMaterials.get(materialID);
         if (mat == null)
         {
-            mat = new ToolMaterial(materialName, displayName, harvestLevel, durability, miningspeed, attack, handleModifier, reinforced, stonebound, style, ability);
+            mat = new ToolMaterial(materialName, localizationName, harvestLevel, durability, miningspeed, attack, handleModifier, reinforced, stonebound, style, primaryColor);
             toolMaterials.put(materialID, mat);
             toolMaterialStrings.put(materialName, mat);
         }
@@ -323,13 +317,32 @@ public class TConstructRegistry
             throw new IllegalArgumentException("[TCon API] Material ID " + materialID + " is already occupied by " + mat.materialName);
     }
 
+    @Deprecated
+    public static void addToolMaterial (int materialID, String materialName, int harvestLevel, int durability, int miningspeed, int attack, float handleModifier, int reinforced, float stonebound, String style)
+    {
+        logger.warn("[TCon API] Using deprecated addToolMaterial with no primary color. A fallback of white will be used.");
+        addToolMaterial(materialID, materialName, harvestLevel, durability, miningspeed, attack, handleModifier, reinforced, stonebound, style, 0xFFFFFF);
+    }
+
+    @Deprecated
+    public static void addToolMaterial (int materialID, String materialName, int harvestLevel, int durability, int miningspeed, int attack, float handleModifier, int reinforced, float stonebound, String style, String ability)
+    {
+        logger.warn("[TCon API] Using deprecated addToolMaterial with ability name. ability will be ignored, use languages files for that.");
+        addToolMaterial(materialID, materialName, harvestLevel, durability, miningspeed, attack, handleModifier, reinforced, stonebound, style);
+    }
+
+    @Deprecated
+    public static void addToolMaterial (int materialID, String materialName, String displayName, int harvestLevel, int durability, int miningspeed, int attack, float handleModifier, int reinforced, float stonebound, String style, String ability)
+    {
+        logger.warn("[TCon API] Using deprecated addToolMaterial with display and ability name. displayName and ability will be ignored, use languages files for that.");
+        addToolMaterial(materialID, materialName, harvestLevel, durability, miningspeed, attack, handleModifier, reinforced, stonebound, style);
+    }
+
     /**
      * Adds a tool material to the registry
      * 
      * @param materialID
      *            Unique ID, stored for each part
-     * @exception materialID
-     *                must be unique
      * @param material
      *            Complete tool material to add. Uses the name in the material
      *            for lookup purposes.
@@ -431,12 +444,27 @@ public class TConstructRegistry
             customMaterials.add(mat);
     }
 
+
+    public static void addBowstringMaterial (int materialID, int value, ItemStack input, ItemStack craftingMaterial, float durability, float drawSpeed, float flightSpeed, int color)
+    {
+        BowstringMaterial mat = new BowstringMaterial(materialID, value, input, craftingMaterial, durability, drawSpeed, flightSpeed, color);
+        customMaterials.add(mat);
+    }
+
+    public static void addFletchingMaterial (int materialID, int value, ItemStack input, ItemStack craftingMaterial, float accuracy, float breakChance, float mass, int color)
+    {
+        FletchingMaterial mat = new FletchingMaterial(materialID, value, input, craftingMaterial, accuracy, breakChance, mass, color);
+        customMaterials.add(mat);
+    }
+
+    @Deprecated
     public static void addBowstringMaterial (int materialID, int value, ItemStack input, ItemStack craftingMaterial, float durability, float drawSpeed, float flightSpeed)
     {
         BowstringMaterial mat = new BowstringMaterial(materialID, value, input, craftingMaterial, durability, drawSpeed, flightSpeed);
         customMaterials.add(mat);
     }
 
+    @Deprecated
     public static void addFletchingMaterial (int materialID, int value, ItemStack input, ItemStack craftingMaterial, float accuracy, float breakChance, float mass)
     {
         FletchingMaterial mat = new FletchingMaterial(materialID, value, input, craftingMaterial, accuracy, breakChance, mass);
@@ -457,7 +485,7 @@ public class TConstructRegistry
     {
         for (CustomMaterial mat : customMaterials)
         {
-            if (mat.getClass().equals(clazz) && input.isItemEqual(mat.input))
+            if (mat.getClass().equals(clazz) && mat.matches(input))
                 return mat;
         }
         return null;

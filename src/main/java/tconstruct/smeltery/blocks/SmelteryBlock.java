@@ -1,35 +1,25 @@
 package tconstruct.smeltery.blocks;
 
-import java.util.List;
-import java.util.Random;
-
-import mantle.blocks.abstracts.InventoryBlock;
-import mantle.blocks.abstracts.MultiServantLogic;
-import mantle.blocks.iface.IFacingLogic;
-import mantle.blocks.iface.IMasterLogic;
-import mantle.blocks.iface.IServantLogic;
+import cpw.mods.fml.relauncher.*;
+import java.util.*;
+import mantle.blocks.abstracts.*;
+import mantle.blocks.iface.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.inventory.Container;
+import net.minecraft.item.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.*;
 import tconstruct.TConstruct;
 import tconstruct.library.TConstructRegistry;
 import tconstruct.smeltery.SmelteryProxyCommon;
-import tconstruct.smeltery.logic.AdaptiveDrainLogic;
-import tconstruct.smeltery.logic.AdaptiveSmelteryLogic;
-import tconstruct.smeltery.logic.SmelteryDrainLogic;
-import tconstruct.smeltery.logic.SmelteryLogic;
+import tconstruct.smeltery.logic.*;
 import tconstruct.smeltery.model.SmelteryRender;
 import tconstruct.util.config.PHConstruct;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class SmelteryBlock extends InventoryBlock
 {
@@ -64,8 +54,7 @@ public class SmelteryBlock extends InventoryBlock
     @Override
     public String[] getTextureNames ()
     {
-        String[] textureNames = { "smeltery_side", "smeltery_inactive", "smeltery_active", "drain_side", "drain_out", "drain_basin", "searedbrick", "searedstone", "searedcobble", "searedpaver",
-                "searedbrickcracked", "searedroad", "searedbrickfancy", "searedbricksquare", "searedcreeper" };
+        String[] textureNames = { "smeltery_side", "smeltery_inactive", "smeltery_active", "drain_side", "drain_out", "drain_basin", "searedbrick", "searedstone", "searedcobble", "searedpaver", "searedbrickcracked", "searedroad", "searedbrickfancy", "searedbricksquare", "searedcreeper" };
 
         if (!texturePrefix.equals(""))
             for (int i = 0; i < textureNames.length; i++)
@@ -313,11 +302,40 @@ public class SmelteryBlock extends InventoryBlock
     @Override
     public void breakBlock (World world, int x, int y, int z, Block blockID, int meta)
     {
+        // TE is not valid anymore at this point. :/
+
         TileEntity logic = world.getTileEntity(x, y, z);
         if (logic instanceof IServantLogic)
         {
             ((IServantLogic) logic).notifyMasterOfChange();
         }
         super.breakBlock(world, x, y, z, blockID, meta);
+    }
+
+    //Comparator
+
+    public boolean hasComparatorInputOverride ()
+    {
+        return true;
+    }
+
+    public int getComparatorInputOverride (World world, int x, int y, int z, int comparatorSide)
+    {
+        int meta = world.getBlockMetadata(x, y, z);
+        if (meta == 0)
+        {
+            if (PHConstruct.newSmeltery)
+                return 0;
+            else
+                return Container.calcRedstoneFromInventory(((SmelteryLogic) world.getTileEntity(x, y, z)));
+        }
+        if (meta == 1)
+        {
+            if (PHConstruct.newSmeltery)
+                return 0;
+            else
+                return ((SmelteryDrainLogic) world.getTileEntity(x, y, z)).comparatorStrength();
+        }
+        return 0;
     }
 }

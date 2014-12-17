@@ -1,18 +1,18 @@
 package tconstruct.items.tools;
 
+import cpw.mods.fml.relauncher.*;
 import java.util.List;
-
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
+import tconstruct.library.TConstructRegistry;
+import tconstruct.library.tools.BowstringMaterial;
+import tconstruct.library.tools.CustomMaterial;
 import tconstruct.tools.TinkerTools;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class Shortbow extends BowBase
 {
@@ -39,6 +39,20 @@ public class Shortbow extends BowBase
             return "";
         }
     }
+
+
+    @Override
+    protected int getDefaultColor(int renderPass, int materialID) {
+        // bowstring uses custom material
+        if(renderPass == 0) {
+            CustomMaterial mat = TConstructRegistry.getCustomMaterial(materialID, BowstringMaterial.class);
+            if(mat != null)
+                return mat.color;
+        }
+
+        return super.getDefaultColor(renderPass, materialID);
+    }
+
 
     @Override
     public String getEffectSuffix ()

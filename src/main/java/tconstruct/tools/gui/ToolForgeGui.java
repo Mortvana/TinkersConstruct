@@ -1,14 +1,12 @@
 package tconstruct.tools.gui;
 
+import cpw.mods.fml.relauncher.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-import tconstruct.library.client.TConstructClientRegistry;
-import tconstruct.library.client.ToolGuiElement;
+import tconstruct.library.client.*;
 import tconstruct.tools.logic.ToolForgeLogic;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class ToolForgeGui extends ToolStationGui
@@ -35,16 +33,14 @@ public class ToolForgeGui extends ToolStationGui
         for (int iter = 0; iter < TConstructClientRegistry.tierTwoButtons.size(); iter++)
         {
             ToolGuiElement element = TConstructClientRegistry.tierTwoButtons.get(iter);
-            GuiButtonTool button = new GuiButtonTool(iter + 1, this.guiLeft + 22 * ((iter + 1) % 5), this.guiTop + 22 * ((iter + 1) / 5), element.buttonIconX, element.buttonIconY, repair.domain,
-                    element.texture, element);
+            GuiButtonTool button = new GuiButtonTool(iter + 1, this.guiLeft + 22 * ((iter + 1) % 5), this.guiTop + 22 * ((iter + 1) / 5), element.buttonIconX, element.buttonIconY, repair.domain, element.texture, element);
             this.buttonList.add(button);
         }
 
         for (int iter = 1; iter < TConstructClientRegistry.toolButtons.size(); iter++)
         {
             ToolGuiElement element = TConstructClientRegistry.toolButtons.get(iter);
-            GuiButtonTool button = new GuiButtonTool(iter + offset, this.guiLeft + 22 * ((iter + offset) % 5), this.guiTop + 22 * ((iter + offset) / 5), element.buttonIconX, element.buttonIconY,
-                    repair.domain, element.texture, element);
+            GuiButtonTool button = new GuiButtonTool(iter + offset, this.guiLeft + 22 * ((iter + offset) % 5), this.guiTop + 22 * ((iter + offset) / 5), element.buttonIconX, element.buttonIconY, repair.domain, element.texture, element);
             this.buttonList.add(button);
         }
     }
@@ -61,7 +57,15 @@ public class ToolForgeGui extends ToolStationGui
         iconX = b.element.iconsX;
         iconY = b.element.iconsY;
         title = "\u00A7n" + b.element.title;
-        body = b.element.body;
+        body = StatCollector.translateToLocal(b.element.body);
+        if(body != null) {
+            int i;
+            // for some really weird reason replaceAll doesn't find "\\n", but indexOf does. We have to replace manually.
+            while((i = body.indexOf("\\n")) >= 0)
+            {
+                body = body.substring(0, i) + '\n' + body.substring(i+2);
+            }
+        }
     }
 
     @Override

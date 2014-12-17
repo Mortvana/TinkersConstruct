@@ -1,27 +1,23 @@
 package tconstruct.tools;
 
 import java.util.Random;
-
 import net.minecraft.block.Block;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EnumCreatureAttribute;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.enchantment.*;
+import net.minecraft.entity.*;
+import net.minecraft.entity.item.*;
+import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeHooks;
 import tconstruct.library.ActiveToolMod;
-import tconstruct.library.tools.AbilityHelper;
-import tconstruct.library.tools.ToolCore;
+import tconstruct.library.tools.*;
 import tconstruct.util.config.PHConstruct;
 import tconstruct.world.TinkerWorld;
+import tconstruct.world.entity.BlueSlime;
 
 public class TActiveOmniMod extends ActiveToolMod
 {
@@ -58,22 +54,40 @@ public class TActiveOmniMod extends ActiveToolMod
         TinkerTools.modLapis.midStreamModify(stack, tool);
         if (autoSmelt(tool, tags, stack, x, y, z, entity))
             return true;
-        
+
         return false;
     }
-    
-    private boolean autoSmelt(ToolCore tool, NBTTagCompound tags, ItemStack stack, int x, int y, int z, EntityLivingBase entity)
+
+    @Override
+    public void afterBlockBreak(ToolCore tool, ItemStack stack, Block block, int x, int y, int z, EntityLivingBase entity) {
+        NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
+        slimify(tool, tags, block, x,y,z, entity.worldObj);
+    }
+
+    private boolean autoSmelt (ToolCore tool, NBTTagCompound tags, ItemStack stack, int x, int y, int z, EntityLivingBase entity)
     {
         World world = entity.worldObj;
-        int meta = world.getBlockMetadata(x, y, z);
         Block block = world.getBlock(x, y, z);
         if (block == null)
             return false;
 
+        int meta = world.getBlockMetadata(x, y, z);
+
+        if(!block.getMaterial().isToolNotRequired() && !ForgeHooks.canToolHarvestBlock(block, meta, stack))
+            return false;
+
+        meta = block.damageDropped(meta);
+
         if (tags.getBoolean("Lava") && block.quantityDropped(meta, 0, random) != 0)
         {
             int amount = block.quantityDropped(random);
-            ItemStack result = FurnaceRecipes.smelting().getSmeltingResult(new ItemStack(block.getItemDropped(meta, random, EnchantmentHelper.getFortuneModifier(entity)), amount, meta));
+            Item item = block.getItemDropped(meta, random, EnchantmentHelper.getFortuneModifier(entity));
+
+            // apparently some things that don't drop blocks (like glass panes without silktouch) return null.
+            if (item == null)
+                return false;
+
+            ItemStack result = FurnaceRecipes.smelting().getSmeltingResult(new ItemStack(item, amount, meta));
             if (result != null)
             {
                 world.setBlockToAir(x, y, z);
@@ -81,7 +95,7 @@ public class TActiveOmniMod extends ActiveToolMod
                     tool.onBlockDestroyed(stack, world, block, x, y, z, entity);
                 if (!world.isRemote)
                 {
-                    ItemStack spawnme = new ItemStack(result.getItem(), amount, result.getItemDamage());
+                    ItemStack spawnme = new ItemStack(result.getItem(), amount * result.stackSize, result.getItemDamage());
                     if (result.hasTagCompound())
                         spawnme.setTagCompound(result.getTagCompound());
                     if (!(result.getItem() instanceof ItemBlock) && PHConstruct.lavaFortuneInteraction)
@@ -162,11 +176,12 @@ public class TActiveOmniMod extends ActiveToolMod
 
     private void baconator (ToolCore tool, ItemStack stack, EntityLivingBase entity, NBTTagCompound tags)
     {
+        final int pigiron = TinkerTools.MaterialID.PigIron;
         int bacon = 0;
-        bacon += tags.getInteger("Head") == 18 ? 1 : 0;
-        bacon += tags.getInteger("Handle") == 18 ? 1 : 0;
-        bacon += tags.getInteger("Accessory") == 18 ? 1 : 0;
-        bacon += tags.getInteger("Extra") == 18 ? 1 : 0;
+        bacon += tags.getInteger("Head") == pigiron ? 1 : 0;
+        bacon += tags.getInteger("Handle") == pigiron ? 1 : 0;
+        bacon += tags.getInteger("Accessory") == pigiron ? 1 : 0;
+        bacon += tags.getInteger("Extra") == pigiron ? 1 : 0;
         int chance = tool.getPartAmount() * 100;
         if (random.nextInt(chance) < bacon)
         {
@@ -174,6 +189,54 @@ public class TActiveOmniMod extends ActiveToolMod
                 AbilityHelper.spawnItemAtPlayer((EntityPlayer) entity, new ItemStack(TinkerWorld.strangeFood, 1, 2));
             else
                 AbilityHelper.spawnItemAtEntity(entity, new ItemStack(TinkerWorld.strangeFood, 1, 2), 0);
+        }
+    }
+
+    private void slimify(ToolCore tool, NBTTagCompound tags, Block block, int x, int y, int z, World world)
+    {
+        if (world.isRemote)
+            return;
+
+        int chance = tool.getPartAmount() * 100;
+        int count = 0;
+        int slimeMat = TinkerTools.MaterialID.Slime;
+
+        // regular slime
+        if(tags.getInteger("Head") == slimeMat)
+            count++;
+        if(tags.getInteger("Handle") == slimeMat)
+            count++;
+        if(tags.getInteger("Accessory") == slimeMat)
+            count++;
+        if(tags.getInteger("Extra") == slimeMat)
+            count++;
+
+        if(random.nextInt(chance) < count) {
+            EntitySlime entity = new EntitySlime(world);
+            entity.setPosition(x+0.5,y,z+0.5);
+            entity.setSlimeSize(1); // minislime!
+            world.spawnEntityInWorld(entity);
+            entity.playLivingSound();
+        }
+
+        // blueslime
+        slimeMat = TinkerTools.MaterialID.BlueSlime;
+        count = 0;
+        if(tags.getInteger("Head") == slimeMat)
+            count++;
+        if(tags.getInteger("Handle") == slimeMat)
+            count++;
+        if(tags.getInteger("Accessory") == slimeMat)
+            count++;
+        if(tags.getInteger("Extra") == slimeMat)
+            count++;
+
+        if(random.nextInt(chance) < count) {
+            BlueSlime entity = new BlueSlime(world);
+            entity.setPosition(x+0.5,y,z+0.5);
+            entity.setSlimeSize(1); // minislime!
+            world.spawnEntityInWorld(entity);
+            entity.playLivingSound();
         }
     }
 

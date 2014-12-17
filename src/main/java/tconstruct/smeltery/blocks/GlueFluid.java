@@ -1,23 +1,21 @@
 package tconstruct.smeltery.blocks;
 
+import cpw.mods.fml.relauncher.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.entity.*;
+import net.minecraft.potion.*;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.BlockFluidFinite;
-import net.minecraftforge.fluids.Fluid;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraftforge.fluids.*;
 
 public class GlueFluid extends BlockFluidFinite
 {
 
     IIcon stillIcon;
     IIcon flowIcon;
+
+    boolean overwriteFluidIcons = true;
 
     public GlueFluid(Fluid fluid, Material material)
     {
@@ -30,6 +28,9 @@ public class GlueFluid extends BlockFluidFinite
     {
         stillIcon = iconRegister.registerIcon("tinker:liquid_glue");
         flowIcon = iconRegister.registerIcon("tinker:liquid_glue_flow");
+
+        if (this.overwriteFluidIcons)
+            this.getFluid().setIcons(stillIcon, flowIcon);
     }
 
     @Override
@@ -56,5 +57,10 @@ public class GlueFluid extends BlockFluidFinite
             // Glue is sticky stuff
             living.addPotionEffect(new PotionEffect(Potion.moveSlowdown.getId(), 30, 4));
         }
+    }
+
+    public void suppressOverwritingFluidIcons ()
+    {
+        this.overwriteFluidIcons = false;
     }
 }

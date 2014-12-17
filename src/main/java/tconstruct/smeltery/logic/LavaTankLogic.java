@@ -1,19 +1,11 @@
 package tconstruct.smeltery.logic;
 
 import mantle.blocks.abstracts.MultiServantLogic;
-import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
+import net.minecraft.network.*;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidContainerRegistry;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.FluidTankInfo;
-import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fluids.*;
 
 public class LavaTankLogic extends MultiServantLogic implements IFluidHandler
 {
@@ -53,21 +45,25 @@ public class LavaTankLogic extends MultiServantLogic implements IFluidHandler
     @Override
     public FluidStack drain (ForgeDirection from, FluidStack resource, boolean doDrain)
     {
-        return null;
+        if (tank.getFluidAmount() == 0)
+            return null;
+        if (tank.getFluid().getFluid() != resource.getFluid())
+            return null;
+
+        // same fluid, k
+        return this.drain(from, resource.amount, doDrain);
     }
 
     @Override
     public boolean canFill (ForgeDirection from, Fluid fluid)
     {
-        // return tank.fill(fluid, false) > 0;
-        return false;
+        return tank.getFluidAmount() == 0 || (tank.getFluid().getFluid() == fluid && tank.getFluidAmount() < tank.getCapacity());
     }
 
     @Override
     public boolean canDrain (ForgeDirection from, Fluid fluid)
     {
-        // TODO Auto-generated method stub
-        return false;
+        return tank.getFluidAmount() > 0;
     }
 
     @Override
@@ -101,12 +97,7 @@ public class LavaTankLogic extends MultiServantLogic implements IFluidHandler
     {
         if (containsFluid())
         {
-            int id = tank.getFluid().fluidID;
-            if (id < 4096)
-            {
-                Block block = Block.getBlockById(id);
-                return block.getLightValue();
-            }
+            return (tank.getFluid().getFluid().getLuminosity() * tank.getFluidAmount()) / tank.getCapacity();
         }
         return 0;
     }
@@ -187,5 +178,10 @@ public class LavaTankLogic extends MultiServantLogic implements IFluidHandler
             renderOffset -= 6;
             worldObj.func_147479_m(xCoord, yCoord, zCoord);
         }
+    }
+
+    public int comparatorStrength ()
+    {
+        return 15 * tank.getFluidAmount() / tank.getCapacity();
     }
 }

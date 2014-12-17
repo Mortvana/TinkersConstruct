@@ -1,22 +1,19 @@
 package tconstruct.plugins.imc;
 
+import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.registry.GameRegistry.ObjectHolder;
+import mantle.pulsar.pulse.*;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
-
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLInterModComms;
-import cpw.mods.fml.common.registry.GameRegistry.ObjectHolder;
-import mantle.pulsar.pulse.Handler;
-import mantle.pulsar.pulse.Pulse;
 import tconstruct.TConstruct;
 import tconstruct.smeltery.TinkerSmeltery;
 
 @ObjectHolder(TConstruct.modID)
-@Pulse(id = "Tinkers BuildCraft Compatibility", description = "Tinkers Construct compatibility for BC Transport", modsRequired = "BuildCraft|Transport")
+@Pulse(id = "Tinkers BuildCraft Compatibility", description = "Tinkers Construct compatibility for BC Transport", modsRequired = "BuildCraft|Transport", forced = true)
 public class TinkerBuildCraft
 {
     @Handler
-    public void init(FMLInitializationEvent event)
+    public void init (FMLInitializationEvent event)
     {
         TConstruct.logger.info("BuildCraft detected. Registering facades.");
         // Smeltery Blocks

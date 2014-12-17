@@ -1,7 +1,7 @@
 package tconstruct.library;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.block.Block;
+import net.minecraft.entity.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -21,9 +21,15 @@ public class ActiveToolMod
         return false;
     }
 
+    @Deprecated
     public boolean afterBlockBreak () // Unfinished, not called
     {
         return false;
+    }
+
+    public void afterBlockBreak(ToolCore tool, ItemStack stack, Block block, int x, int y, int z, EntityLivingBase entity)
+    {
+
     }
 
     /* Attacking */

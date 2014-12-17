@@ -1,22 +1,15 @@
 package tconstruct.smeltery.model;
 
+import cpw.mods.fml.client.registry.*;
 import java.util.Set;
-
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTankInfo;
-
+import net.minecraftforge.fluids.*;
 import org.lwjgl.opengl.GL11;
-
 import tconstruct.client.BlockSkinRenderHelper;
 import tconstruct.smeltery.logic.CastingChannelLogic;
-import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 /**
  * @author BluSunrize
@@ -148,7 +141,7 @@ public class BlockRenderCastingChannel implements ISimpleBlockRenderingHandler
             {
                 float liquidAmount = (float) tankMain.fluid.amount / (float) tankMain.capacity * 0.125f;
                 double startY = tile.tankBelow();
-                renderer.setRenderBounds(0.375D, startY, 0.375D, 0.625D, 0.5 + liquidAmount, 0.625D); //Center
+                renderer.setRenderBounds(0.375D, startY, 0.375D, 0.625D, 0.51 + liquidAmount, 0.625D); //Center
                 renderLiquidPart(world, x, y, z, block, renderer, tankMain.fluid, false);
             }
             for (ForgeDirection dir : outputs)
@@ -160,8 +153,8 @@ public class BlockRenderCastingChannel implements ISimpleBlockRenderingHandler
                 if (tankSub == null || tankSub.fluid == null)
                     break;
                 float liquidAmount = (float) tankSub.fluid.amount / (float) tankSub.capacity * 0.125f / 2;
-                renderer.setRenderBounds(bounds[0], 0.5, bounds[1], bounds[2], 0.5 + liquidAmount, bounds[3]);
-                renderLiquidPart(world, x, y, z, block, renderer, tankSub.fluid, true);
+                renderer.setRenderBounds(bounds[0], 0.51, bounds[1], bounds[2], 0.5 + liquidAmount, bounds[3]);
+                renderLiquidPart(world, x, y, z, block, renderer, tankSub.fluid, false);
             }
         }
         return true;
@@ -194,9 +187,9 @@ public class BlockRenderCastingChannel implements ISimpleBlockRenderingHandler
         if (fluid.canBePlacedInWorld() && !useFlowingTexture)
             BlockSkinRenderHelper.renderMetadataBlock(fluid.getBlock(), 0, x, y, z, renderer, world);
         else if (useFlowingTexture)
-            BlockSkinRenderHelper.renderLiquidBlock(fluid.getFlowingIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world);
+            BlockSkinRenderHelper.renderLiquidBlock(fluid.getFlowingIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world, false, fluid.getColor(fluidStack));
         else
-            BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world);
+            BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world, false, fluid.getColor(fluidStack));
     }
 
     private void renderStandardBlock (Block block, int meta, RenderBlocks renderer)

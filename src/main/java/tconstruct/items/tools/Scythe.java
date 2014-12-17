@@ -1,30 +1,27 @@
 package tconstruct.items.tools;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.relauncher.*;
+import java.util.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.enchantment.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.INetHandler;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IShearable;
-import tconstruct.library.ActiveToolMod;
-import tconstruct.library.TConstructRegistry;
-import tconstruct.library.tools.AbilityHelper;
-import tconstruct.library.tools.Weapon;
+import tconstruct.library.*;
+import tconstruct.library.tools.*;
 import tconstruct.tools.TinkerTools;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class Scythe extends Weapon
 {
@@ -197,8 +194,7 @@ public class Scythe extends Weapon
                                         {
                                             if (butter && localBlock instanceof IShearable && ((IShearable) localBlock).isShearable(stack, player.worldObj, x, y, z))
                                             {
-                                                ArrayList<ItemStack> drops = ((IShearable) localBlock).onSheared(stack, player.worldObj, x, y, z,
-                                                        EnchantmentHelper.getEnchantmentLevel(Enchantment.fortune.effectId, stack));
+                                                ArrayList<ItemStack> drops = ((IShearable) localBlock).onSheared(stack, player.worldObj, x, y, z, EnchantmentHelper.getEnchantmentLevel(Enchantment.fortune.effectId, stack));
                                                 Random rand = new Random();
 
                                                 if (!world.isRemote)
@@ -220,24 +216,29 @@ public class Scythe extends Weapon
                                             }
                                             else
                                             {
-                                                if (!world.isRemote)
-                                                {
-                                                    // Workaround for dropping experience
-                                                    int exp = localBlock.getExpDrop(world, localMeta, fortune);
 
-                                                    localBlock.onBlockHarvested(world, xPos, yPos, zPos, localMeta, player);
-                                                    if (localBlock.removedByPlayer(world, player, xPos, yPos, zPos, true))
-                                                    {
-                                                        localBlock.onBlockDestroyedByPlayer(world, xPos, yPos, zPos, localMeta);
-                                                        localBlock.harvestBlock(world, player, xPos, yPos, zPos, localMeta);
-                                                        // Workaround for dropping experience
-                                                        if (!butter)
-                                                            localBlock.dropXpOnBlockBreak(world, xPos, yPos, zPos, exp);
-                                                    }
-                                                }
-                                                else
+                                                // Workaround for dropping experience
+                                                int exp = localBlock.getExpDrop(world, localMeta, fortune);
+
+                                                localBlock.onBlockHarvested(world, xPos, yPos, zPos, localMeta, player);
+                                                if (localBlock.removedByPlayer(world, player, xPos, yPos, zPos, true))
                                                 {
                                                     localBlock.onBlockDestroyedByPlayer(world, xPos, yPos, zPos, localMeta);
+                                                    localBlock.harvestBlock(world, player, xPos, yPos, zPos, localMeta);
+                                                    // Workaround for dropping experience
+                                                    if (!butter)
+                                                        localBlock.dropXpOnBlockBreak(world, xPos, yPos, zPos, exp);
+                                                }
+
+                                                if (world.isRemote)
+                                                {
+                                                    INetHandler handler = FMLClientHandler.instance().getClientPlayHandler();
+                                                    if (handler != null && handler instanceof NetHandlerPlayClient)
+                                                    {
+                                                        NetHandlerPlayClient handlerClient = (NetHandlerPlayClient) handler;
+                                                        handlerClient.addToSendQueue(new C07PacketPlayerDigging(0, x, y, z, Minecraft.getMinecraft().objectMouseOver.sideHit));
+                                                        handlerClient.addToSendQueue(new C07PacketPlayerDigging(2, x, y, z, Minecraft.getMinecraft().objectMouseOver.sideHit));
+                                                    }
                                                 }
 
                                                 if (localHardness > 0f)

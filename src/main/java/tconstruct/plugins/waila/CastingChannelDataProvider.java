@@ -1,15 +1,11 @@
 package tconstruct.plugins.waila;
 
 import java.util.List;
-
-import mcp.mobius.waila.api.IWailaConfigHandler;
-import mcp.mobius.waila.api.IWailaDataAccessor;
-import mcp.mobius.waila.api.IWailaDataProvider;
+import mcp.mobius.waila.api.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTankInfo;
+import net.minecraftforge.fluids.*;
 import tconstruct.smeltery.logic.CastingChannelLogic;
 
 public class CastingChannelDataProvider implements IWailaDataProvider
@@ -47,12 +43,12 @@ public class CastingChannelDataProvider implements IWailaDataProvider
             }
             else
             {
-                currenttip.add("Â§o" + StatCollector.translateToLocal("tconstruct.waila.empty")); // "Â§o" == Italics
+                currenttip.add(SpecialChars.ITALIC + StatCollector.translateToLocal("tconstruct.waila.empty"));
             }
 
             currenttip.add(StatCollector.translateToLocal("tconstruct.waila.subtanks"));
             String s1, s2, s3, s4;
-            s1 = s2 = s3 = s4 = "Â§o" + StatCollector.translateToLocal("tconstruct.waila.empty");
+            s1 = s2 = s3 = s4 = StatCollector.translateToLocal("tconstruct.waila.empty");
 
             if (northTank.fluid != null)
                 s1 = northTank.fluid.amount + " / " + northTank.capacity;

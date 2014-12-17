@@ -1,22 +1,33 @@
 package tconstruct.armor;
 
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import java.util.*;
+
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import tconstruct.TConstruct;
 import tconstruct.armor.items.TravelGear;
 import tconstruct.armor.player.TPlayerStats;
 import tconstruct.library.modifier.IModifyable;
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
+import tconstruct.util.network.HealthUpdatePacket;
 
 public class ArmorAbilities
 {
     //Abilities
     boolean morphed;
     boolean morphLoaded = Loader.isModLoaded("Morph");
+    boolean smartmoveLoaded = Loader.isModLoaded("SmartMoving");
 
-    ItemStack prevFeet;
+    public static List<String> stepBoostedPlayers = new ArrayList();
+    //ItemStack prevFeet;
     double prevMotionY;
 
     @SubscribeEvent
@@ -53,6 +64,7 @@ public class ArmorAbilities
             }
             prevMotionY = player.motionY;
         }
+        /* Former step height boost handling 
         if (feet != prevFeet)
         {
             if (prevFeet != null && prevFeet.getItem() instanceof TravelGear)
@@ -60,6 +72,18 @@ public class ArmorAbilities
             if (feet != null && feet.getItem() instanceof TravelGear)
                 player.stepHeight += 0.6f;
             prevFeet = feet;
+        }*/
+        boolean stepBoosted = stepBoostedPlayers.contains(player.getGameProfile().getName());
+        if (stepBoosted)
+            player.stepHeight = 1.1f;
+        if (!stepBoosted && feet != null && feet.getItem() instanceof TravelGear)
+        {
+            stepBoostedPlayers.add(player.getGameProfile().getName());
+        }
+        else if (stepBoosted && (feet == null || !(feet.getItem() instanceof TravelGear)))
+        {
+            stepBoostedPlayers.remove(player.getGameProfile().getName());
+            player.stepHeight -= 0.6f;
         }
         //TODO: Proper minimap support
         /*ItemStack stack = player.inventory.getStackInSlot(8);
@@ -67,12 +91,21 @@ public class ArmorAbilities
         {
             stack.getItem().onUpdate(stack, player.worldObj, player, 8, true);
         }*/
-        if (!player.isPlayerSleeping())
+
+        if (morphLoaded)
+        {
+            if (morph.api.Api.hasMorph(player.getCommandSenderName(), event.side.isClient()))
+            {
+                morphed = true;
+            }
+        }
+
+        if (!player.isPlayerSleeping() && !smartmoveLoaded)
         {
             ItemStack chest = player.getCurrentArmor(2);
             if (chest == null || !(chest.getItem() instanceof IModifyable))
             {
-                if (!morphLoaded || !morphed)
+                if (!(morphLoaded && morphed))
                     PlayerAbilityHelper.setEntitySize(player, 0.6F, 1.8F);
             }
             else
@@ -81,10 +114,23 @@ public class ArmorAbilities
                 int dodge = tag.getInteger("Perfect Dodge");
                 if (dodge > 0)
                 {
-                    if (!morphLoaded || !morphed)
+                    if (!(morphLoaded && morphed))
                         PlayerAbilityHelper.setEntitySize(player, Math.max(0.15F, 0.6F - (dodge * 0.09f)), 1.8F - (dodge * 0.04f));
                 }
             }
         }
+    }
+
+
+    @SubscribeEvent
+    public void dimensionChanged(PlayerEvent.PlayerChangedDimensionEvent event)
+    {
+        if(event.player == null || !(event.player instanceof EntityPlayerMP))
+            return;
+
+        // this callback is only called serverside
+        float oldHealth = event.player.getHealth();
+        // tell the client to update its hp
+        TConstruct.packetPipeline.sendTo(new HealthUpdatePacket(oldHealth), (net.minecraft.entity.player.EntityPlayerMP) event.player);
     }
 }

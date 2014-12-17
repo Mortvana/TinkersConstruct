@@ -1,20 +1,20 @@
 package tconstruct.armor;
 
-import net.minecraft.entity.boss.EntityDragon;
-import net.minecraft.entity.boss.IBossDisplayData;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
+import net.minecraft.entity.boss.*;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
 import tconstruct.TConstruct;
 import tconstruct.armor.items.TravelWings;
+import tconstruct.armor.player.ArmorExtended;
 import tconstruct.armor.player.TPlayerStats;
 import tconstruct.library.modifier.IModifyable;
 import tconstruct.world.entity.BlueSlime;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class TinkerArmorEvents
 {
@@ -27,28 +27,26 @@ public class TinkerArmorEvents
 
         if (TConstruct.random.nextInt(200) == 0 && event.entityLiving instanceof IMob && event.source.damageType.equals("player"))
         {
-            if (event.entityLiving instanceof BlueSlime)
-            {
-                BlueSlime slime = (BlueSlime) event.entityLiving;
-                if (slime.getSlimeSize() < 8)
-                    return;
-            }
-            int count = event.entityLiving instanceof EntityDragon ? 5 : 1;
-            for (int i = 0; i < count; i++)
-            {
-                ItemStack dropStack = new ItemStack(TinkerArmor.heartCanister, 1, 1);
-                EntityItem entityitem = new EntityItem(event.entityLiving.worldObj, event.entityLiving.posX, event.entityLiving.posY, event.entityLiving.posZ, dropStack);
-                entityitem.delayBeforeCanPickup = 10;
-                event.drops.add(entityitem);
-            }
+            ItemStack dropStack = new ItemStack(TinkerArmor.heartCanister, 1, 1);
+            EntityItem entityitem = new EntityItem(event.entityLiving.worldObj, event.entityLiving.posX, event.entityLiving.posY, event.entityLiving.posZ, dropStack);
+            entityitem.delayBeforeCanPickup = 10;
+            event.drops.add(entityitem);
         }
 
         if (event.entityLiving instanceof IBossDisplayData)
         {
-            ItemStack dropStack = new ItemStack(TinkerArmor.heartCanister, 1, 3);
-            EntityItem entityitem = new EntityItem(event.entityLiving.worldObj, event.entityLiving.posX, event.entityLiving.posY, event.entityLiving.posZ, dropStack);
-            entityitem.delayBeforeCanPickup = 10;
-            event.drops.add(entityitem);
+            String entityName = event.entityLiving.getClass().getSimpleName().toLowerCase();
+            if (entityName.contains("entitynpc") || entityName.contains("entitycustomnpc"))
+                return;
+
+            int count = event.entityLiving instanceof EntityDragon ? 5 : 1;
+            for (int i = 0; i < count; i++)
+            {
+                ItemStack dropStack = new ItemStack(TinkerArmor.heartCanister, 1, 3);
+                EntityItem entityitem = new EntityItem(event.entityLiving.worldObj, event.entityLiving.posX, event.entityLiving.posY, event.entityLiving.posZ, dropStack);
+                entityitem.delayBeforeCanPickup = 10;
+                event.drops.add(entityitem);
+            }
         }
     }
 
@@ -56,10 +54,22 @@ public class TinkerArmorEvents
     @SubscribeEvent
     public void armorMineSpeed (net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed event)
     {
-        TPlayerStats stats = TPlayerStats.get(event.entityPlayer);
-        float modifier = 1f + stats.mineSpeed / 1000f;
-        float base = stats.mineSpeed / 250f;
-        event.newSpeed = (event.newSpeed + base) * modifier;
+        if(event.entityPlayer == null)
+            return;
+
+        ItemStack glove = TPlayerStats.get(event.entityPlayer).armor.getStackInSlot(1);
+        if(event.entityPlayer.worldObj.isRemote) // todo: sync extended inventory with clients so this stuff and rendering is done properly...
+            glove = ArmorProxyClient.armorExtended.getStackInSlot(1);
+        if(glove == null || !glove.hasTagCompound())
+            return;
+
+        // ok, we got a glove. bonus mining speeeeed
+        NBTTagCompound tags = glove.getTagCompound().getCompoundTag(TinkerArmor.travelGlove.getBaseTagName());
+        float mineSpeed = tags.getInteger("MiningSpeed");
+
+        float modifier = 1f + mineSpeed / 1000f;
+        float base = mineSpeed / 250f;
+        event.newSpeed = (event.originalSpeed + base) * modifier;
     }
 
     @SubscribeEvent

@@ -1,18 +1,26 @@
 package tconstruct.library.tools;
 
-import mantle.world.WorldHelper;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.server.S23PacketBlockChange;
 import net.minecraft.world.World;
-import tconstruct.library.ActiveToolMod;
-import tconstruct.library.TConstructRegistry;
+import net.minecraftforge.common.ForgeHooks;
+import tconstruct.tools.TinkerTools;
+import tconstruct.util.config.PHConstruct;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /* Base class for tools that should be harvesting blocks */
 
@@ -22,89 +30,34 @@ public abstract class HarvestTool extends ToolCore
     {
         super(baseDamage);
     }
-    
+
     @Override
     public boolean onBlockStartBreak (ItemStack stack, int x, int y, int z, EntityPlayer player)
     {
-        if (!stack.hasTagCompound())
-            return false;
+        return super.onBlockStartBreak(stack, x,y,z, player);
+    }
+
+    @Override
+    public int getHarvestLevel(ItemStack stack, String toolClass) {
+        // well, we can only get the harvestlevel if we have an item to get it from!
+        if(stack == null || !(stack.getItem() instanceof HarvestTool))
+            return -1;
+        // invalid query or wrong toolclass
+        if(toolClass == null || !this.getHarvestType().equals(toolClass))
+            return -1;
+
+        if(!stack.hasTagCompound())
+            return -1;
 
         NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
-        World world = player.worldObj;
-        Block block = player.worldObj.getBlock(x, y, z);
-        int meta = world.getBlockMetadata(x, y, z);
-        // Block block = Block.blocksList[bID];
-        if (block == null || block == Blocks.air)
-            return false;
-        int hlvl = -1;
-        if (!(tags.getBoolean("Broken")))
-        {
-            if (block.getHarvestTool(meta) != null && block.getHarvestTool(meta).equals(this.getHarvestType()))
-                hlvl = block.getHarvestLevel(meta);
-            int toolLevel = tags.getInteger("HarvestLevel");
-            float blockHardness = block.getBlockHardness(world, x, y, z);
+        // broken tools suck.
+        if (tags.getBoolean("Broken"))
+            return -1;
 
-            if (hlvl <= toolLevel)
-            {
-                boolean cancelHarvest = false;
-                for (ActiveToolMod mod : TConstructRegistry.activeModifiers)
-                {
-                    if (mod.beforeBlockBreak(this, stack, x, y, z, player))
-                        cancelHarvest = true;
-                }
-
-                if (!cancelHarvest)
-                {
-                    if (block != null)
-                    {
-
-                        boolean isEffective = false;
-
-                        for (int iter = 0; iter < getEffectiveMaterials().length; iter++)
-                        {
-                            if (getEffectiveMaterials()[iter] == block.getMaterial() || block == Blocks.monster_egg)
-                            {
-                                isEffective = true;
-                                break;
-                            }
-                        }
-
-                        // Microblocks are registered as rock but no HarvestTool is set
-                        if (block.getMaterial().isToolNotRequired() || block.getHarvestTool(meta) == null)
-                        {
-                            isEffective = true;
-                        }
-
-                        if (!player.capabilities.isCreativeMode)
-                        {
-                            if (isEffective)
-                            {
-                                mineBlock(world, x, y, z, meta, player, block);
-                                if (blockHardness > 0f)
-                                    onBlockDestroyed(stack, world, block, x, y, z, player);
-                                world.func_147479_m(x, y, z);
-                            }
-                            else
-                            {
-                                WorldHelper.setBlockToAir(world, x, y, z);
-                                world.func_147479_m(x, y, z);
-                            }
-
-                        }
-                        else
-                        {
-                            WorldHelper.setBlockToAir(world, x, y, z);
-                            world.func_147479_m(x, y, z);
-                        }
-                    }
-                }
-            }
-        }
-        if (!world.isRemote)
-            world.playAuxSFX(2001, x, y, z, Block.getIdFromBlock(block) + (meta << 12));
-        return true;
-
+        // tadaaaa
+        return tags.getInteger("HarvestLevel");
     }
+
 
     @Override
     public float getDigSpeed (ItemStack stack, Block block, int meta)
@@ -116,55 +69,30 @@ public abstract class HarvestTool extends ToolCore
         if (tags.getBoolean("Broken"))
             return 0.1f;
 
-        Material[] materials = getEffectiveMaterials();
-        for (int i = 0; i < materials.length; i++)
-        {
-            if (materials[i] == block.getMaterial())
-            {
-                return calculateStrength(tags, block, meta);
-            }
-        }
-        if (block.getHarvestLevel(meta) > 0)
-        {
-            return calculateStrength(tags, block, meta); // No issue if the
-                                                         // harvest level is
-                                                         // too low
-        }
+        if(isEffective(block, meta))
+            return calculateStrength(tags, block, meta);
+
         return super.getDigSpeed(stack, block, meta);
     }
 
     public float calculateStrength (NBTTagCompound tags, Block block, int meta)
     {
-        float mineSpeed = tags.getInteger("MiningSpeed");
-        int heads = 1;
-        if (tags.hasKey("MiningSpeed2"))
-        {
-            mineSpeed += tags.getInteger("MiningSpeed2");
-            heads++;
-        }
 
-        if (tags.hasKey("MiningSpeedHandle"))
-        {
-            mineSpeed += tags.getInteger("MiningSpeedHandle");
-            heads++;
-        }
-
-        if (tags.hasKey("MiningSpeedExtra"))
-        {
-            mineSpeed += tags.getInteger("MiningSpeedExtra");
-            heads++;
-        }
-        float trueSpeed = mineSpeed / (heads * 100f);
         int hlvl = block.getHarvestLevel(meta);
-        int durability = tags.getInteger("Damage");
+        if (hlvl > tags.getInteger("HarvestLevel"))
+            return 0.1f;
 
-        float stonebound = tags.getFloat("Shoddy");
-        float bonusLog = (float) Math.log(durability / 72f + 1) * 2 * stonebound;
-        trueSpeed += bonusLog;
+        return AbilityHelper.calcToolSpeed(this, tags);
+    }
 
-        if (hlvl <= tags.getInteger("HarvestLevel"))
-            return trueSpeed;
-        return 0.1f;
+    public float breakSpeedModifier ()
+    {
+        return 1.0f;
+    }
+
+    public float stoneboundModifier ()
+    {
+        return 72f;
     }
 
     @Override
@@ -193,10 +121,29 @@ public abstract class HarvestTool extends ToolCore
 
     protected abstract String getHarvestType ();
 
-    public boolean isEffective(Material material)
+    @Override
+    public Set<String> getToolClasses(ItemStack stack) {
+        Set<String> set = new HashSet<String>();
+
+        if(stack != null && stack.getItem() instanceof  HarvestTool) {
+            set.add(((HarvestTool) stack.getItem()).getHarvestType());
+        }
+
+        return set;
+    }
+
+    public boolean isEffective (Block block, int meta)
     {
-        for(Material m : getEffectiveMaterials())
-            if(m == material)
+        if(this.getHarvestType().equals(block.getHarvestTool(meta)))
+            return true;
+
+        else return isEffective(block.getMaterial());
+    }
+
+    public boolean isEffective (Material material)
+    {
+        for (Material m : getEffectiveMaterials())
+            if (m == material)
                 return true;
 
         return false;
@@ -220,7 +167,8 @@ public abstract class HarvestTool extends ToolCore
             if (nearbyStack != null)
             {
                 Item item = nearbyStack.getItem();
-                if (item instanceof ItemBlock)
+  
+                if (item instanceof ItemBlock || (item != null && item == TinkerTools.openBlocksDevNull))
                 {
                     int posX = x;
                     int posY = y;
@@ -262,7 +210,25 @@ public abstract class HarvestTool extends ToolCore
                         return false;
                     }
 
-                    used = item.onItemUse(nearbyStack, player, world, x, y, z, side, clickX, clickY, clickZ);
+                    int dmg = nearbyStack.getItemDamage();
+                    int count = nearbyStack.stackSize;
+                    if (item == TinkerTools.openBlocksDevNull)
+                    {
+                    	//Openblocks uses current inventory slot, so we have to do this...
+                    	player.inventory.currentItem=itemSlot;
+                    	item.onItemUse(nearbyStack, player, world, x, y, z, side, clickX, clickY, clickZ);
+                    	player.inventory.currentItem=hotbarSlot;
+                    	player.swingItem();
+                    }
+                    else
+                    	used = item.onItemUse(nearbyStack, player, world, x, y, z, side, clickX, clickY, clickZ);
+
+                    // handle creative mode
+                    if(player.capabilities.isCreativeMode) {
+                        // fun fact: vanilla minecraft does it exactly the same way
+                        nearbyStack.setItemDamage(dmg);
+                        nearbyStack.stackSize = count;
+                    }
                     if (nearbyStack.stackSize < 1)
                     {
                         nearbyStack = null;
@@ -283,42 +249,87 @@ public abstract class HarvestTool extends ToolCore
         return used;
     }
 
-    @Override
-    public int getHarvestLevel (ItemStack stack, String toolClass)
-    {
-        if (!(stack.getItem() instanceof HarvestTool) || !getHarvestType().equals(toolClass))
-        {
-            return -1;
-        }
+    protected void breakExtraBlock(World world, int x, int y, int z, int sidehit, EntityPlayer player, int refX, int refY, int refZ) {
+        // prevent calling that stuff for air blocks, could lead to unexpected behaviour since it fires events
+        if (world.isAirBlock(x, y, z))
+            return;
 
-        NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
-        int harvestLvl = tags.getInteger("HarvestLevel");
-        return harvestLvl;
-    }
+        // check if the block can be broken, since extra block breaks shouldn't instantly break stuff like obsidian
+        // or precious ores you can't harvest while mining stone
+        Block block = world.getBlock(x, y, z);
+        int meta = world.getBlockMetadata(x, y, z);
 
-    // The Scythe is not a HarvestTool and can't call this method, if you change something here you might change it there too.
-    public void mineBlock(World world, int x, int y, int z, int meta, EntityPlayer player, Block block)
-    {
-        if (!world.isRemote)
-        {
-            // Workaround for dropping experience
-            boolean silktouch = EnchantmentHelper.getSilkTouchModifier(player);
-            int fortune = EnchantmentHelper.getFortuneModifier(player);
-            int exp = block.getExpDrop(world, meta, fortune);
+        // only effective materials
+        if (!isEffective(block, meta))
+            return;
 
+        Block refBlock = world.getBlock(refX, refY, refZ);
+        float refStrength = ForgeHooks.blockStrength(refBlock, player, world, refX, refY, refZ);
+        float strength = ForgeHooks.blockStrength(block, player, world, x,y,z);
+
+        // only harvestable blocks that aren't impossibly slow to harvest
+        if (!ForgeHooks.canHarvestBlock(block, player, meta) || refStrength/strength > 10f)
+            return;
+
+        if (player.capabilities.isCreativeMode) {
             block.onBlockHarvested(world, x, y, z, meta, player);
-            if (block.removedByPlayer(world, player, x, y, z, true))
-            {
+            if (block.removedByPlayer(world, player, x, y, z, false))
                 block.onBlockDestroyedByPlayer(world, x, y, z, meta);
-                block.harvestBlock(world, player, x, y, z, meta);
-                // Workaround for dropping experience
-                if (!silktouch)
-                    block.dropXpOnBlockBreak(world, x, y, z, exp);
+
+            // send update to client
+            if (!world.isRemote) {
+                ((EntityPlayerMP)player).playerNetServerHandler.sendPacket(new S23PacketBlockChange(x, y, z, world));
             }
+            return;
         }
-        else
-        {
-            block.onBlockDestroyedByPlayer(world, x, y, z, meta);
+
+        // callback to the tool the player uses. Called on both sides. This damages the tool n stuff.
+        player.getCurrentEquippedItem().func_150999_a(world, block, x, y, z, player);
+
+        // server sided handling
+        if (!world.isRemote) {
+            // serverside we reproduce ItemInWorldManager.tryHarvestBlock
+
+            // ItemInWorldManager.removeBlock
+            block.onBlockHarvested(world, x,y,z, meta, player);
+
+            if(block.removedByPlayer(world, player, x,y,z, true)) // boolean is if block can be harvested, checked above
+            {
+                block.onBlockDestroyedByPlayer( world, x,y,z, meta);
+                block.harvestBlock(world, player, x,y,z, meta);
+            }
+
+            // always send block update to client
+            EntityPlayerMP mpPlayer = (EntityPlayerMP) player;
+            mpPlayer.playerNetServerHandler.sendPacket(new S23PacketBlockChange(x, y, z, world));
+        }
+        // client sided handling
+        else {
+            PlayerControllerMP pcmp = Minecraft.getMinecraft().playerController;
+            // clientside we do a "this clock has been clicked on long enough to be broken" call. This should not send any new packets
+            // the code above, executed on the server, sends a block-updates that give us the correct state of the block we destroy.
+
+            // following code can be found in PlayerControllerMP.onPlayerDestroyBlock
+            world.playAuxSFX(2001, x, y, z, Block.getIdFromBlock(block) + (meta << 12));
+            if(block.removedByPlayer(world, player, x,y,z, true))
+            {
+                block.onBlockDestroyedByPlayer(world, x,y,z, meta);
+            }
+            // callback to the tool
+            ItemStack itemstack = player.getCurrentEquippedItem();
+            if (itemstack != null)
+            {
+                itemstack.func_150999_a(world, block, x, y, z, player);
+
+                if (itemstack.stackSize == 0)
+                {
+                    player.destroyCurrentEquippedItem();
+                }
+            }
+
+            // send an update to the server, so we get an update back
+            if(PHConstruct.extraBlockUpdates)
+                Minecraft.getMinecraft().getNetHandler().addToSendQueue(new C07PacketPlayerDigging(2, x,y,z, Minecraft.getMinecraft().objectMouseOver.sideHit));
         }
     }
 }

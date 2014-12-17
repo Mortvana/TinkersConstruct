@@ -1,40 +1,29 @@
 package tconstruct.armor.player;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.UUID;
+import cpw.mods.fml.common.*;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
+import cpw.mods.fml.relauncher.Side;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import mantle.player.PlayerUtils;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.Entity.EnumEntitySize;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
+import net.minecraft.nbt.*;
 import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 import tconstruct.TConstruct;
 import tconstruct.library.tools.AbilityHelper;
 import tconstruct.tools.TinkerTools;
 import tconstruct.util.config.PHConstruct;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
-import cpw.mods.fml.relauncher.Side;
 
 //TODO: Redesign this class
 public class TPlayerHandler
@@ -215,7 +204,7 @@ public class TPlayerHandler
             stats.hunger = playerData.hunger;
         }
 
-        stats.player = new WeakReference<EntityPlayer>(entityplayer);
+        stats.init(entityplayer, entityplayer.worldObj);
         stats.armor.recalculateHealth(entityplayer, stats);
 
         /*
@@ -271,8 +260,20 @@ public class TPlayerHandler
         else
             stats.hunger = evt.entityPlayer.getFoodStats().getFoodLevel();
 
-        stats.armor.dropItems(evt.drops);
-        stats.knapsack.dropItems(evt.drops);
+        if (evt.entityPlayer.capturedDrops != evt.drops)
+        {
+            evt.entityPlayer.capturedDrops.clear();
+        }
+
+        evt.entityPlayer.captureDrops = true;
+        stats.armor.dropItems();
+        stats.knapsack.dropItems();
+        evt.entityPlayer.captureDrops = false;
+
+        if (evt.entityPlayer.capturedDrops != evt.drops)
+        {
+            evt.drops.addAll(evt.entityPlayer.capturedDrops);
+        }
 
         playerStats.put(evt.entityPlayer.getPersistentID(), stats);
     }
@@ -326,7 +327,7 @@ public class TPlayerHandler
         }
         // entity.yOffset = height;
     }
-    
+
     private final String serverLocation = "https://dl.dropboxusercontent.com/u/42769935/sticks.txt";
     private final int timeout = 1000;
     private HashSet<String> stickUsers = new HashSet<String>();

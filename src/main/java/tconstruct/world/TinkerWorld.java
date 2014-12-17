@@ -1,38 +1,30 @@
 package tconstruct.world;
 
-import mantle.pulsar.pulse.Handler;
-import mantle.pulsar.pulse.Pulse;
-import mantle.pulsar.pulse.PulseProxy;
+import cpw.mods.fml.common.Mod.Instance;
+import cpw.mods.fml.common.*;
+import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.registry.*;
+import cpw.mods.fml.common.registry.GameRegistry.ObjectHolder;
+import mantle.pulsar.pulse.*;
 import mantle.utils.RecipeRemover;
-import net.minecraft.block.Block;
+import net.minecraft.block.*;
 import net.minecraft.block.Block.SoundType;
-import net.minecraft.block.BlockDispenser;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.init.*;
+import net.minecraft.item.*;
 import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.WeightedRandomChestContent;
-import net.minecraftforge.common.ChestGenHooks;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.oredict.OreDictionary;
-import net.minecraftforge.oredict.ShapedOreRecipe;
-import net.minecraftforge.oredict.ShapelessOreRecipe;
+import net.minecraftforge.common.*;
+import net.minecraftforge.fluids.*;
+import net.minecraftforge.oredict.*;
 import tconstruct.TConstruct;
 import tconstruct.armor.TinkerArmor;
 import tconstruct.blocks.SlabBase;
-import tconstruct.blocks.slime.SlimeFluid;
-import tconstruct.blocks.slime.SlimeGel;
-import tconstruct.blocks.slime.SlimeGrass;
-import tconstruct.blocks.slime.SlimeLeaves;
-import tconstruct.blocks.slime.SlimeSapling;
-import tconstruct.blocks.slime.SlimeTallGrass;
-import tconstruct.blocks.traps.BarricadeBlock;
-import tconstruct.blocks.traps.Punji;
+import tconstruct.blocks.slime.*;
+import tconstruct.blocks.traps.*;
 import tconstruct.client.StepSoundSlime;
 import tconstruct.common.itemblocks.MetadataItemBlock;
 import tconstruct.library.TConstructRegistry;
@@ -40,63 +32,26 @@ import tconstruct.library.crafting.FluidType;
 import tconstruct.smeltery.TinkerSmeltery;
 import tconstruct.smeltery.blocks.MetalOre;
 import tconstruct.smeltery.itemblocks.MetalItemBlock;
-import tconstruct.tools.TDispenserBehaviorArrow;
-import tconstruct.tools.TinkerTools;
-import tconstruct.tools.blocks.MultiBrick;
-import tconstruct.tools.blocks.MultiBrickFancy;
-import tconstruct.tools.entity.ArrowEntity;
-import tconstruct.tools.entity.DaggerEntity;
-import tconstruct.tools.entity.FancyEntityItem;
-import tconstruct.tools.entity.LaunchedPotion;
-import tconstruct.tools.itemblocks.MultiBrickFancyItem;
-import tconstruct.tools.itemblocks.MultiBrickItem;
-import tconstruct.world.blocks.ConveyorBase;
-import tconstruct.world.blocks.GravelOre;
-import tconstruct.world.blocks.MeatBlock;
-import tconstruct.world.blocks.OreberryBush;
-import tconstruct.world.blocks.OreberryBushEssence;
-import tconstruct.world.blocks.SlimeExplosive;
-import tconstruct.world.blocks.SlimePad;
-import tconstruct.world.blocks.StoneLadder;
-import tconstruct.world.blocks.StoneTorch;
-import tconstruct.world.blocks.TMetalBlock;
-import tconstruct.world.blocks.WoodRail;
-import tconstruct.world.entity.BlueSlime;
-import tconstruct.world.entity.Crystal;
-import tconstruct.world.gen.TBaseWorldGenerator;
-import tconstruct.world.gen.TerrainGenEventHandler;
-import tconstruct.world.itemblocks.BarricadeItem;
-import tconstruct.world.itemblocks.GravelOreItem;
-import tconstruct.world.itemblocks.HamboneItemBlock;
-import tconstruct.world.itemblocks.MetalOreItemBlock;
-import tconstruct.world.itemblocks.OreberryBushItem;
-import tconstruct.world.itemblocks.OreberryBushSecondItem;
-import tconstruct.world.itemblocks.SlimeGelItemBlock;
-import tconstruct.world.itemblocks.SlimeGrassItemBlock;
-import tconstruct.world.itemblocks.SlimeLeavesItemBlock;
-import tconstruct.world.itemblocks.SlimeSaplingItemBlock;
-import tconstruct.world.itemblocks.SlimeTallGrassItem;
-import tconstruct.world.itemblocks.WoolSlab1Item;
-import tconstruct.world.itemblocks.WoolSlab2Item;
-import tconstruct.world.items.OreBerries;
-import tconstruct.world.items.StrangeFood;
-import cpw.mods.fml.common.Mod.Instance;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.registry.EntityRegistry;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.GameRegistry.ObjectHolder;
+import tconstruct.tools.*;
+import tconstruct.tools.blocks.*;
+import tconstruct.tools.entity.*;
+import tconstruct.tools.itemblocks.*;
+import tconstruct.util.config.PHConstruct;
+import tconstruct.world.blocks.*;
+import tconstruct.world.entity.*;
+import tconstruct.world.gen.*;
+import tconstruct.world.itemblocks.*;
+import tconstruct.world.items.*;
 
 @ObjectHolder(TConstruct.modID)
-@Pulse(id = "Tinkers' World", description = "Ores, slime islands, essence berries, and the like.")
+@Pulse(id = "Tinkers' World", description = "Ores, slime islands, essence berries, and the like.", forced = true)
 public class TinkerWorld
 {
     @Instance("TinkerWorld")
     public static TinkerWorld instance;
-    @PulseProxy(clientSide = "tconstruct.world.TinkerWorldProxyClient", serverSide = "tconstruct.world.TinkerWorldProxyCommon")
+    @SidedProxy(clientSide = "tconstruct.world.TinkerWorldProxyClient", serverSide = "tconstruct.world.TinkerWorldProxyCommon")
     public static TinkerWorldProxyCommon proxy;
-    
+
     public static Item strangeFood;
     // Decoration
     public static Block stoneTorch;
@@ -134,12 +89,14 @@ public class TinkerWorld
     public static ChestGenHooks tinkerHousePatterns;
     public static Block punji;
     public static Block metalBlock;
-    
+    // Morbid
+    public static Item goldHead;
+
     @Handler
     public void preInit (FMLPreInitializationEvent event)
     {
         MinecraftForge.EVENT_BUS.register(new TinkerWorldEvents());
-        
+
         //Blocks
         TinkerWorld.meatBlock = new MeatBlock().setBlockName("tconstruct.meatblock");
         TinkerWorld.woolSlab1 = new SlabBase(Material.cloth, Blocks.wool, 0, 8).setBlockName("cloth");
@@ -153,7 +110,7 @@ public class TinkerWorld
         TinkerWorld.barricadeBirch = new BarricadeBlock(Blocks.log, 2).setBlockName("trap.barricade.birch");
         TinkerWorld.barricadeJungle = new BarricadeBlock(Blocks.log, 3).setBlockName("trap.barricade.jungle");
         TinkerWorld.slimeExplosive = new SlimeExplosive().setHardness(0.0F).setStepSound(Block.soundTypeGrass).setBlockName("explosive.slime");
-        
+
         // Slime
         TinkerWorld.slimeStep = new StepSoundSlime("mob.slime", 1.0f, 1.0f);
 
@@ -163,10 +120,8 @@ public class TinkerWorld
         TinkerWorld.slimePool = new SlimeFluid(TinkerWorld.blueSlimeFluid, Material.water).setCreativeTab(TConstructRegistry.blockTab).setStepSound(TinkerWorld.slimeStep).setBlockName("liquid.slime");
         GameRegistry.registerBlock(TinkerWorld.slimePool, "liquid.slime");
         TinkerWorld.blueSlimeFluid.setBlock(TinkerWorld.slimePool);
-        //TODO: Add a new bucket for blue slime
-        //FluidContainerRegistry.registerFluidContainer(new FluidContainerData(new FluidStack(TinkerWorld.blueSlimeFluid, 1000), new ItemStack(TinkerSmeltery.buckets, 1, 24), new ItemStack(Items.bucket)));
-        
-     // Slime Islands
+
+        // Slime Islands
         TinkerWorld.slimeGel = new SlimeGel().setStepSound(TinkerWorld.slimeStep).setLightOpacity(0).setBlockName("slime.gel");
         TinkerWorld.slimeGrass = new SlimeGrass().setStepSound(Block.soundTypeGrass).setLightOpacity(0).setBlockName("slime.grass");
         TinkerWorld.slimeTallGrass = new SlimeTallGrass().setStepSound(Block.soundTypeGrass).setBlockName("slime.grass.tall");
@@ -209,7 +164,7 @@ public class TinkerWorld
         GameRegistry.registerBlock(TinkerWorld.meatBlock, HamboneItemBlock.class, "MeatBlock");
         GameRegistry.registerBlock(TinkerWorld.woolSlab1, WoolSlab1Item.class, "WoolSlab1");
         GameRegistry.registerBlock(TinkerWorld.woolSlab2, WoolSlab2Item.class, "WoolSlab2");
-        
+
         // Traps
         GameRegistry.registerBlock(TinkerWorld.punji, "trap.punji");
         GameRegistry.registerBlock(TinkerWorld.barricadeOak, BarricadeItem.class, "trap.barricade.oak");
@@ -249,8 +204,10 @@ public class TinkerWorld
 
         // Rail
         GameRegistry.registerBlock(TinkerWorld.woodenRail, "rail.wood");
-        
+
         //Items
+        goldHead = new GoldenHead(4, 1.2F, false).setAlwaysEdible().setPotionEffect(Potion.regeneration.id, 10, 0, 1.0F).setUnlocalizedName("goldenhead");
+        GameRegistry.registerItem(goldHead, "goldHead");
 
         TinkerWorld.strangeFood = new StrangeFood().setUnlocalizedName("tconstruct.strangefood");
         TinkerWorld.oreBerries = new OreBerries().setUnlocalizedName("oreberry");
@@ -274,13 +231,13 @@ public class TinkerWorld
         // Items.minecartPowered.setMaxStackSize(3);
         Items.cake.setMaxStackSize(16);
         // Block.torchWood.setTickRandomly(false);
-        
+
         TinkerWorld.metalBlock = new TMetalBlock(Material.iron, 10.0F).setBlockName("tconstruct.metalblock");
         TinkerWorld.metalBlock.stepSound = Block.soundTypeMetal;
         GameRegistry.registerBlock(TinkerWorld.metalBlock, MetalItemBlock.class, "MetalBlock");
         FluidType.registerFluidType("Slime", TinkerWorld.slimeGel, 0, 250, TinkerWorld.blueSlimeFluid, false);
     }
-    
+
     @Handler
     public void init (FMLInitializationEvent event)
     {
@@ -290,7 +247,7 @@ public class TinkerWorld
         addLoot();
         createEntities();
         proxy.initialize();
-        
+
         GameRegistry.registerWorldGenerator(new TBaseWorldGenerator(), 0);
         MinecraftForge.TERRAIN_GEN_BUS.register(new TerrainGenEventHandler());
     }
@@ -298,7 +255,7 @@ public class TinkerWorld
     @Handler
     public void postInit (FMLPostInitializationEvent evt)
     {
-        
+
     }
 
     public void createEntities ()
@@ -312,11 +269,23 @@ public class TinkerWorld
         // TConstruct.instance, 32, 5, true);
 
         EntityRegistry.registerModEntity(BlueSlime.class, "EdibleSlime", 12, TConstruct.instance, 64, 5, true);
+        EntityRegistry.registerModEntity(KingBlueSlime.class, "KingSlime", 14, TConstruct.instance, 64, 5, true);
         // EntityRegistry.registerModEntity(MetalSlime.class, "MetalSlime", 13,
         // TConstruct.instance, 64, 5, true);
+
+        if (PHConstruct.naturalSlimeSpawn > 0)
+        {
+            EntityRegistry.addSpawn(BlueSlime.class, PHConstruct.naturalSlimeSpawn, 4, 20, EnumCreatureType.monster, BiomeDictionary.getBiomesForType(BiomeDictionary.Type.FOREST));
+            EntityRegistry.addSpawn(BlueSlime.class, PHConstruct.naturalSlimeSpawn, 4, 20, EnumCreatureType.monster, BiomeDictionary.getBiomesForType(BiomeDictionary.Type.PLAINS));
+            EntityRegistry.addSpawn(BlueSlime.class, PHConstruct.naturalSlimeSpawn, 4, 20, EnumCreatureType.monster, BiomeDictionary.getBiomesForType(BiomeDictionary.Type.MOUNTAIN));
+            EntityRegistry.addSpawn(BlueSlime.class, PHConstruct.naturalSlimeSpawn, 4, 20, EnumCreatureType.monster, BiomeDictionary.getBiomesForType(BiomeDictionary.Type.HILLS));
+            EntityRegistry.addSpawn(BlueSlime.class, PHConstruct.naturalSlimeSpawn, 4, 20, EnumCreatureType.monster, BiomeDictionary.getBiomesForType(BiomeDictionary.Type.SWAMP));
+            EntityRegistry.addSpawn(BlueSlime.class, PHConstruct.naturalSlimeSpawn, 4, 20, EnumCreatureType.monster, BiomeDictionary.getBiomesForType(BiomeDictionary.Type.JUNGLE));
+            EntityRegistry.addSpawn(BlueSlime.class, PHConstruct.naturalSlimeSpawn, 4, 20, EnumCreatureType.monster, BiomeDictionary.getBiomesForType(BiomeDictionary.Type.WASTELAND));
+        }
     }
-    
-    private void craftingTableRecipes()
+
+    private void craftingTableRecipes ()
     {
         String[] patBlock = { "###", "###", "###" };
         String[] patSurround = { "###", "#m#", "###" };
@@ -375,17 +344,14 @@ public class TinkerWorld
         GameRegistry.addRecipe(new ItemStack(TinkerTools.materials, 9, 31), "m", 'm', new ItemStack(TinkerTools.materials, 1, 13)); // Bronze
         GameRegistry.addRecipe(new ItemStack(TinkerTools.materials, 9, 32), "m", 'm', new ItemStack(TinkerTools.materials, 1, 15)); // Alumite
         GameRegistry.addRecipe(new ItemStack(TinkerTools.materials, 9, 33), "m", 'm', new ItemStack(TinkerTools.materials, 1, 16)); // Steel
-        
 
-        String[] dyeTypes = { "dyeBlack", "dyeRed", "dyeGreen", "dyeBrown", "dyeBlue", "dyePurple", "dyeCyan", "dyeLightGray", "dyeGray", "dyePink", "dyeLime", "dyeYellow", "dyeLightBlue",
-                "dyeMagenta", "dyeOrange", "dyeWhite" };
+        String[] dyeTypes = { "dyeBlack", "dyeRed", "dyeGreen", "dyeBrown", "dyeBlue", "dyePurple", "dyeCyan", "dyeLightGray", "dyeGray", "dyePink", "dyeLime", "dyeYellow", "dyeLightBlue", "dyeMagenta", "dyeOrange", "dyeWhite" };
         String color = "";
         for (int i = 0; i < 16; i++)
         {
             color = dyeTypes[15 - i];
             GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(Blocks.wool, 8, i), patSurround, 'm', color, '#', new ItemStack(Blocks.wool, 1, Short.MAX_VALUE)));
         }
-        
 
         // Jack o'Latern Recipe - Stone Torch
         GameRegistry.addRecipe(new ItemStack(Blocks.lit_pumpkin, 1, 0), "p", "s", 'p', new ItemStack(Blocks.pumpkin), 's', new ItemStack(TinkerWorld.stoneTorch));
@@ -403,11 +369,11 @@ public class TinkerWorld
         // Clock Recipe - Vanilla alternativ
         GameRegistry.addRecipe(new ItemStack(Items.clock), " i ", "iri", " i ", 'i', aluBrass, 'r', new ItemStack(Items.redstone));
         // Gold Pressure Plate - Vanilla alternativ
-        GameRegistry.addRecipe(new ItemStack(Blocks.light_weighted_pressure_plate), "ii", 'i', aluBrass);
+        // todo: temporarily disabled due to light weighted pressure plate being smeltable to gold
+        //GameRegistry.addRecipe(new ItemStack(Blocks.light_weighted_pressure_plate, 0, 1), "ii", 'i', aluBrass);
 
         // Ultra hardcore recipes
-        GameRegistry.addRecipe(new ItemStack(TinkerTools.goldHead), patSurround, '#', new ItemStack(Items.gold_ingot), 'm', new ItemStack(Items.skull, 1, 3));
-
+        GameRegistry.addRecipe(new ItemStack(goldHead), patSurround, '#', new ItemStack(Items.gold_ingot), 'm', new ItemStack(Items.skull, 1, 3));
 
         // Wool Slab Recipes
         for (int sc = 0; sc <= 7; sc++)
@@ -425,7 +391,7 @@ public class TinkerWorld
         GameRegistry.addRecipe(new ItemStack(TinkerWorld.barricadeBirch, 1, 0), "b", "b", 'b', new ItemStack(Blocks.log, 1, 2));
         GameRegistry.addRecipe(new ItemStack(TinkerWorld.barricadeJungle, 1, 0), "b", "b", 'b', new ItemStack(Blocks.log, 1, 3));
         GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(TinkerWorld.barricadeOak, 1, 0), "b", "b", 'b', "logWood"));
-        
+
         // Slime Recipes
         GameRegistry.addRecipe(new ItemStack(TinkerWorld.slimeGel, 1, 0), "##", "##", '#', TinkerWorld.strangeFood);
         GameRegistry.addRecipe(new ItemStack(TinkerWorld.strangeFood, 4, 0), "#", '#', new ItemStack(TinkerWorld.slimeGel, 1, 0));
@@ -437,25 +403,24 @@ public class TinkerWorld
         GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(TinkerWorld.slimeExplosive, 1, 0), "slimeball", Blocks.tnt));
 
         GameRegistry.addShapelessRecipe(new ItemStack(TinkerWorld.slimeChannel, 1, 0), new ItemStack(TinkerWorld.slimeGel, 1, Short.MAX_VALUE), new ItemStack(Items.redstone));
-        GameRegistry.addShapelessRecipe(new ItemStack(TinkerWorld.bloodChannel, 1, 0), new ItemStack(TinkerWorld.strangeFood, 1, 1), new ItemStack(TinkerWorld.strangeFood, 1, 1), new ItemStack(
-                TinkerWorld.strangeFood, 1, 1), new ItemStack(TinkerWorld.strangeFood, 1, 1), new ItemStack(Items.redstone));
+        GameRegistry.addShapelessRecipe(new ItemStack(TinkerWorld.bloodChannel, 1, 0), new ItemStack(TinkerWorld.strangeFood, 1, 1), new ItemStack(TinkerWorld.strangeFood, 1, 1), new ItemStack(TinkerWorld.strangeFood, 1, 1), new ItemStack(TinkerWorld.strangeFood, 1, 1), new ItemStack(Items.redstone));
         GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(TinkerWorld.slimeChannel, 1, 0), "slimeball", "slimeball", "slimeball", "slimeball", new ItemStack(Items.redstone)));
         GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(TinkerWorld.slimePad, 1, 0), TinkerWorld.slimeChannel, "slimeball"));
-        
+
         OreDictionary.registerOre("hambone", new ItemStack(TinkerWorld.meatBlock));
         GameRegistry.addRecipe(new ItemStack(TinkerWorld.meatBlock), "mmm", "mbm", "mmm", 'b', new ItemStack(Items.bone), 'm', new ItemStack(Items.porkchop));
     }
-    
+
     private void addRecipesForFurnace ()
     {
         FurnaceRecipes.smelting().func_151394_a(new ItemStack(TinkerTools.craftedSoil, 1, 3), new ItemStack(TinkerTools.craftedSoil, 1, 4), 0.2f); // Concecrated
-                                                                                                                                       // Soil
+        // Soil
 
         FurnaceRecipes.smelting().func_151394_a(new ItemStack(TinkerTools.craftedSoil, 1, 0), new ItemStack(TinkerTools.materials, 1, 1), 2f); // Slime
         FurnaceRecipes.smelting().func_151394_a(new ItemStack(TinkerTools.craftedSoil, 1, 1), new ItemStack(TinkerTools.materials, 1, 2), 2f); // Seared brick item
         FurnaceRecipes.smelting().func_151394_a(new ItemStack(TinkerTools.craftedSoil, 1, 2), new ItemStack(TinkerTools.materials, 1, 17), 2f); // Blue Slime
         FurnaceRecipes.smelting().func_151394_a(new ItemStack(TinkerTools.craftedSoil, 1, 6), new ItemStack(TinkerTools.materials, 1, 37), 2f); // Nether seared
-                                                                                                                                    // brick
+        // brick
 
         // FurnaceRecipes.smelting().func_151394_a(new ItemStack(TRepo.oreSlag,
         // 1, new ItemStack(TRepo.materials, 1, 3), 3f);
@@ -488,7 +453,7 @@ public class TinkerWorld
         FurnaceRecipes.smelting().func_151394_a(new ItemStack(TinkerTools.materials, 1, 42), new ItemStack(TinkerTools.materials, 1, 14), 0.2f);
 
     }
-    
+
     public void oreRegistry ()
     {
         OreDictionary.registerOre("oreCobalt", new ItemStack(TinkerWorld.oreSlag, 1, 1));
@@ -582,8 +547,7 @@ public class TinkerWorld
 
         OreDictionary.registerOre("torchStone", new ItemStack(TinkerWorld.stoneTorch));
 
-        String[] matNames = { "Wood", "Stone", "Iron", "Flint", "Cactus", "Bone", "Obsidian", "Netherrack", "Slime", "Paper", "Cobalt", "Ardite", "Manyullyn", "Copper", "Bronze", "Alumite", "Steel",
-                "Blueslime" };
+        String[] matNames = { "Wood", "Stone", "Iron", "Flint", "Cactus", "Bone", "Obsidian", "Netherrack", "Slime", "Paper", "Cobalt", "Ardite", "Manyullyn", "Copper", "Bronze", "Alumite", "Steel", "Blueslime" };
         for (int i = 0; i < matNames.length; i++)
         {
             //TODO 1.8 remove this ore dict entry as it's outdated(use materialRod instead)
@@ -592,8 +556,7 @@ public class TinkerWorld
         }
         OreDictionary.registerOre("thaumiumRod", new ItemStack(TinkerTools.toolRod, 1, 31));
 
-        String[] glassTypes = { "glassBlack", "glassRed", "glassGreen", "glassBrown", "glassBlue", "glassPurple", "glassCyan", "glassLightGray", "glassGray", "glassPink", "glassLime", "glassYellow",
-                "glassLightBlue", "glassMagenta", "glassOrange", "glassWhite" };
+        String[] glassTypes = { "glassBlack", "glassRed", "glassGreen", "glassBrown", "glassBlue", "glassPurple", "glassCyan", "glassLightGray", "glassGray", "glassPink", "glassLime", "glassYellow", "glassLightBlue", "glassMagenta", "glassOrange", "glassWhite" };
         for (int i = 0; i < 16; i++)
         {
             OreDictionary.registerOre(glassTypes[15 - i], new ItemStack(TinkerSmeltery.stainedGlassClear, 1, i));
@@ -617,7 +580,7 @@ public class TinkerWorld
         GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(Items.magma_cream), "slimeball", Items.blaze_powder));
         GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(Items.lead, 2), "ss ", "sS ", "  s", 's', Items.string, 'S', "slimeball"));
     }
-    
+
     private static void ensureOreIsRegistered (String oreName, ItemStack is)
     {
         int oreId = OreDictionary.getOreID(is);
@@ -626,7 +589,6 @@ public class TinkerWorld
             OreDictionary.registerOre(oreName, is);
         }
     }
-
 
     public void addLoot ()
     {
@@ -638,8 +600,7 @@ public class TinkerWorld
         TinkerWorld.tinkerHouseChest = new ChestGenHooks("TinkerHouse", new WeightedRandomChestContent[0], 3, 27);
         TinkerWorld.tinkerHouseChest.addItem(new WeightedRandomChestContent(new ItemStack(TinkerArmor.heartCanister, 1, 1), 1, 1, 1));
         int[] validTypes = { 0, 1, 2, 3, 4, 5, 6, 8, 9, 13, 14, 17 };
-        Item[] partTypes = { TinkerTools.pickaxeHead, TinkerTools.shovelHead, TinkerTools.hatchetHead, TinkerTools.binding, TinkerTools.swordBlade, TinkerTools.wideGuard, TinkerTools.handGuard, TinkerTools.crossbar, TinkerTools.knifeBlade,
-                TinkerTools.frypanHead, TinkerTools.signHead, TinkerTools.chiselHead };
+        Item[] partTypes = { TinkerTools.pickaxeHead, TinkerTools.shovelHead, TinkerTools.hatchetHead, TinkerTools.binding, TinkerTools.swordBlade, TinkerTools.wideGuard, TinkerTools.handGuard, TinkerTools.crossbar, TinkerTools.knifeBlade, TinkerTools.frypanHead, TinkerTools.signHead, TinkerTools.chiselHead };
 
         for (int partIter = 0; partIter < partTypes.length; partIter++)
         {

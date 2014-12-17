@@ -1,33 +1,28 @@
 package tconstruct.library.tools;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
+import cofh.api.energy.IEnergyContainerItem;
+import cofh.core.item.IEqualityOverrideItem;
+import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.relauncher.*;
+import java.util.*;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemPotion;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.IIcon;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
-import tconstruct.library.ActiveToolMod;
-import tconstruct.library.TConstructRegistry;
+import tconstruct.TConstruct;
+import tconstruct.library.*;
 import tconstruct.library.crafting.ToolBuilder;
-import tconstruct.library.modifier.IModifyable;
-import tconstruct.library.modifier.ItemModifier;
+import tconstruct.library.modifier.*;
+import tconstruct.library.util.TextureHelper;
+import tconstruct.tools.TinkerTools;
 import tconstruct.tools.entity.FancyEntityItem;
-import cofh.api.energy.IEnergyContainerItem;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import tconstruct.util.config.PHConstruct;
 
 /**
  * NBTTags Main tag - InfiTool
@@ -53,13 +48,12 @@ import cpw.mods.fml.relauncher.SideOnly;
  * @see ItemModifier
  */
 
-public abstract class ToolCore extends Item implements IEnergyContainerItem, IModifyable
+@Optional.InterfaceList({
+        @Optional.Interface(modid = "CoFHLib", iface = "cofh.api.energy.IEnergyContainerItem"),
+        @Optional.Interface(modid = "CoFHCore", iface = "cofh.core.item.IEqualityOverrideItem")
+})
+public abstract class ToolCore extends Item implements IEnergyContainerItem, IEqualityOverrideItem, IModifyable
 {
-    // TE power constants -- TODO grab these from the items added
-    protected int capacity = 400000;
-    protected int maxReceive = 400000;
-    protected int maxExtract = 80;
-
     protected Random random = new Random();
     protected int damageVsEntity;
     public static IIcon blankSprite;
@@ -77,15 +71,15 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
         setNoRepair();
         canRepair = false;
     }
-    
+
     @Override
-    public String getBaseTagName()
+    public String getBaseTagName ()
     {
         return "InfiTool";
     }
-    
+
     @Override
-    public String getModifyType()
+    public String getModifyType ()
     {
         return "Tool";
     }
@@ -120,6 +114,11 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     public String getToolName ()
     {
         return this.getClass().getSimpleName();
+    }
+
+    public String getLocalizedToolName ()
+    {
+        return StatCollector.translateToLocal("tool." + getToolName().toLowerCase());
     }
 
     /* Rendering */
@@ -172,6 +171,17 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
 
     public abstract String getDefaultFolder ();
 
+    /**
+     * Returns the COMPLETE resource path.
+     * Example: tinker:broadsword
+     *
+     * @return
+     */
+    public String getDefaultTexturePath()
+    {
+        return "tinker:" + getDefaultFolder();
+    }
+
     public void registerPartPaths (int index, String[] location)
     {
         headStrings.put(index, location[0]);
@@ -196,62 +206,35 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     @Override
     public void registerIcons (IIconRegister iconRegister)
     {
-        headIcons.clear();
-        brokenIcons.clear();
-        handleIcons.clear();
-        accessoryIcons.clear();
-        extraIcons.clear();
-        effectIcons.clear();
-        Iterator iter = headStrings.entrySet().iterator();
-        while (iter.hasNext())
-        {
-            Map.Entry pairs = (Map.Entry) iter.next();
-            headIcons.put((Integer) pairs.getKey(), iconRegister.registerIcon((String) pairs.getValue()));
-        }
+        boolean minimalTextures = PHConstruct.minimalTextures;
+        addIcons(headStrings, headIcons, iconRegister, getIconSuffix(0), minimalTextures);
+        addIcons(brokenPartStrings, brokenIcons, iconRegister, getIconSuffix(1), minimalTextures);
+        addIcons(handleStrings, handleIcons, iconRegister, getIconSuffix(2), minimalTextures);
+        addIcons(accessoryStrings, accessoryIcons, iconRegister, getIconSuffix(3), minimalTextures);
+        addIcons(extraStrings, extraIcons, iconRegister, getIconSuffix(4), minimalTextures);
 
-        iter = brokenPartStrings.entrySet().iterator();
-        while (iter.hasNext())
-        {
-            Map.Entry pairs = (Map.Entry) iter.next();
-            brokenIcons.put((Integer) pairs.getKey(), iconRegister.registerIcon((String) pairs.getValue()));
-        }
-
-        iter = handleStrings.entrySet().iterator();
-        while (iter.hasNext())
-        {
-            Map.Entry pairs = (Map.Entry) iter.next();
-            handleIcons.put((Integer) pairs.getKey(), iconRegister.registerIcon((String) pairs.getValue()));
-        }
-
-        if (getPartAmount() > 2)
-        {
-            iter = accessoryStrings.entrySet().iterator();
-            while (iter.hasNext())
-            {
-                Map.Entry pairs = (Map.Entry) iter.next();
-                accessoryIcons.put((Integer) pairs.getKey(), iconRegister.registerIcon((String) pairs.getValue()));
-            }
-        }
-
-        if (getPartAmount() > 3)
-        {
-            iter = extraStrings.entrySet().iterator();
-            while (iter.hasNext())
-            {
-                Map.Entry pairs = (Map.Entry) iter.next();
-                extraIcons.put((Integer) pairs.getKey(), iconRegister.registerIcon((String) pairs.getValue()));
-            }
-        }
-
-        iter = effectStrings.entrySet().iterator();
-        while (iter.hasNext())
-        {
-            Map.Entry pairs = (Map.Entry) iter.next();
-            effectIcons.put((Integer) pairs.getKey(), iconRegister.registerIcon((String) pairs.getValue()));
-        }
+        addIcons(effectStrings, effectIcons, iconRegister, null, false);
 
         emptyIcon = iconRegister.registerIcon("tinker:blankface");
     }
+
+    protected void addIcons(HashMap<Integer, String> textures, HashMap<Integer, IIcon> icons, IIconRegister iconRegister, String standard, boolean defaultOnly)
+    {
+        icons.clear();
+
+        if(!defaultOnly) // compatibility mode: no specific textures
+            for(Map.Entry<Integer, String> entry : textures.entrySet())
+            {
+                if(TextureHelper.itemTextureExists(entry.getValue()))
+                    icons.put(entry.getKey(), iconRegister.registerIcon(entry.getValue()));
+            }
+
+        if(standard != null && !standard.isEmpty()) {
+            standard =  getDefaultTexturePath() + "/" + standard;
+            icons.put(-1, iconRegister.registerIcon(standard));
+        }
+    }
+
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -271,30 +254,25 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
             tags = stack.getTagCompound().getCompoundTag("InfiTool");
             if (renderPass < getPartAmount())
             {
-                if (renderPass == 0) // Handle
-                {
-                    return handleIcons.get(tags.getInteger("RenderHandle"));
-                }
-
-                else if (renderPass == 1) // Head
+                // Handle
+                if (renderPass == 0)
+                    return getCorrectIcon(handleIcons, tags.getInteger("RenderHandle"));
+                // Head
+                else if (renderPass == 1)
                 {
                     if (tags.getBoolean("Broken"))
-                        return (brokenIcons.get(tags.getInteger("RenderHead")));
+                        return getCorrectIcon(brokenIcons, tags.getInteger("RenderHead"));
                     else
-                        return (headIcons.get(tags.getInteger("RenderHead")));
+                        return getCorrectIcon(headIcons, tags.getInteger("RenderHead"));
                 }
-
-                else if (renderPass == 2) // Accessory
-                {
-                    return (accessoryIcons.get(tags.getInteger("RenderAccessory")));
-                }
-
-                else if (renderPass == 3) // Extra
-                {
-                    return (extraIcons.get(tags.getInteger("RenderExtra")));
-                }
+                // Accessory
+                else if (renderPass == 2)
+                    return getCorrectIcon(accessoryIcons, tags.getInteger("RenderAccessory"));
+                // Extra
+                else if (renderPass == 3)
+                    return getCorrectIcon(extraIcons, tags.getInteger("RenderExtra"));
             }
-
+            // Effects
             else
             {
                 if (renderPass == getPartAmount())
@@ -336,6 +314,15 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
             return blankSprite;
         }
         return emptyIcon;
+    }
+
+    protected IIcon getCorrectIcon(Map<Integer, IIcon> icons, int id)
+    {
+        if(icons.containsKey(id))
+            return icons.get(id);
+
+        // default icon
+        return icons.get(-1);
     }
 
     /* Tags and information about the tool */
@@ -432,6 +419,9 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
         return TConstructRegistry.getMaterial(type).style();
     }
 
+    /**
+     * Returns the localized name of the materials ability. Only use this for display purposes, not for logic.
+     */
     public String getAbilityNameForType (int type)
     {
         return TConstructRegistry.getMaterial(type).ability();
@@ -543,7 +533,7 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
         {
             Map.Entry pairs = (Map.Entry) iter.next();
             tconstruct.library.tools.ToolMaterial material = (tconstruct.library.tools.ToolMaterial) pairs.getValue();
-            buildTool((Integer) pairs.getKey(), material.displayName, list);
+            buildTool((Integer) pairs.getKey(), ToolBuilder.defaultToolName(material, this), list);
         }
     }
 
@@ -553,17 +543,8 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
         ItemStack accessoryStack = accessory != null ? new ItemStack(getAccessoryItem(), 1, id) : null;
         Item extra = getExtraItem();
         ItemStack extraStack = extra != null ? new ItemStack(extra, 1, id) : null;
-        ItemStack tool = ToolBuilder.instance.buildTool(new ItemStack(getHeadItem(), 1, id), new ItemStack(getHandleItem(), 1, id), accessoryStack, extraStack, name + getToolName());
-        if (tool == null)
-        {
-            boolean supress = false; //TODO: Find this for iguana tweaks
-            if (!supress)
-            {
-                TConstructRegistry.logger.error("Creative builder failed tool for " + name + this.getToolName());
-                TConstructRegistry.logger.error("Make sure you do not have item ID conflicts");
-            }
-        }
-        else
+        ItemStack tool = ToolBuilder.instance.buildTool(new ItemStack(getHeadItem(), 1, id), new ItemStack(getHandleItem(), 1, id), accessoryStack, extraStack, name);
+        if (tool != null)
         {
             tool.getTagCompound().getCompoundTag("InfiTool").setBoolean("Built", true);
             list.add(tool);
@@ -581,7 +562,7 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
 
     public Item getHandleItem ()
     {
-        return TConstructRegistry.getItem("toolRod");// TContent.toolRod;
+        return TinkerTools.toolRod;
     }
 
     /* Updating */
@@ -604,6 +585,9 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     @Override
     public boolean onBlockStartBreak (ItemStack stack, int x, int y, int z, EntityPlayer player)
     {
+        if(!stack.hasTagCompound())
+            return false;
+
         boolean cancelHarvest = false;
         for (ActiveToolMod mod : TConstructRegistry.activeModifiers)
         {
@@ -617,6 +601,13 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     @Override
     public boolean onBlockDestroyed (ItemStack itemstack, World world, Block block, int x, int y, int z, EntityLivingBase player)
     {
+        if(!itemstack.hasTagCompound())
+            return false;
+
+        // callbacks!
+        for (ActiveToolMod mod : TConstructRegistry.activeModifiers)
+            mod.afterBlockBreak(this, itemstack, block, x, y, z, player);
+
         if (block != null && (double) block.getBlockHardness(world, x, y, z) != 0.0D)
         {
             return AbilityHelper.onBlockChanged(itemstack, world, block, x, y, z, player, random);
@@ -637,8 +628,7 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     @Override
     public boolean onLeftClickEntity (ItemStack stack, EntityPlayer player, Entity entity)
     {
-        AbilityHelper.onLeftClickEntity(stack, player, entity, this, 0);
-        return false;
+        return AbilityHelper.onLeftClickEntity(stack, player, entity, this, 0);
     }
 
     @Override
@@ -676,6 +666,47 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     public float getDamageModifier ()
     {
         return 1.0f;
+    }
+
+    @Override
+    public int getColorFromItemStack(ItemStack stack, int renderPass) {
+        NBTTagCompound tags = stack.getTagCompound();
+
+        if (tags != null)
+        {
+            tags = stack.getTagCompound().getCompoundTag("InfiTool");
+            if (renderPass < getPartAmount())
+            {
+                switch(renderPass)
+                {
+                    case 0: return getCorrectColor(stack, renderPass, tags, "Handle", handleIcons);
+                    case 1: return getCorrectColor(stack, renderPass, tags, "Head", headIcons);
+                    case 2: return getCorrectColor(stack, renderPass, tags, "Accessory", accessoryIcons);
+                    case 3: return getCorrectColor(stack, renderPass, tags, "Extra", extraIcons);
+                }
+            }
+        }
+        return super.getColorFromItemStack(stack, renderPass);
+    }
+
+    protected int getCorrectColor(ItemStack stack, int renderPass, NBTTagCompound tags, String key, Map<Integer, IIcon> map)
+    {
+        // custom coloring
+        if(tags.hasKey(key + "Color"))
+            return tags.getInteger(key + "Color");
+
+        // custom texture?
+        Integer matId = tags.getInteger("Render" + key);
+        if(map.containsKey(matId))
+            return super.getColorFromItemStack(stack, renderPass);
+
+        // color default texture with material color
+        return getDefaultColor(renderPass, matId);
+    }
+
+    protected int getDefaultColor(int renderPass, int materialID)
+    {
+        return TConstructRegistry.getMaterial(materialID).primaryColor();
     }
 
     @Override
@@ -745,24 +776,23 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     }
 
     /* Proper stack damage */
-    public int getItemMaxDamageFromStack (ItemStack stack)
-    {
-        NBTTagCompound tags = stack.getTagCompound();
-        if (tags == null)
-        {
-            return 0;
-        }
-        if (tags.hasKey("Energy"))
-        {
-            int energy = tags.getInteger("Energy");
-            if (energy > 0)
-                return this.getMaxEnergyStored(stack);
-        }
-        return tags.getCompoundTag("InfiTool").getInteger("TotalDurability");
+    @Override
+    public boolean showDurabilityBar(ItemStack stack) {
+        if(!stack.hasTagCompound())
+            return false;
+        
+        NBTTagCompound tags = stack.getTagCompound().getCompoundTag("InfiTool");
+        return !tags.getBoolean("Broken") && getDamage(stack) > 0;
     }
 
-    public int getItemDamageFromStackForDisplay (ItemStack stack)
+    @Override
+    public int getMaxDamage (ItemStack stack)
     {
+        return 100;
+    }
+
+    @Override
+    public int getDamage(ItemStack stack) {
         NBTTagCompound tags = stack.getTagCompound();
         if (tags == null)
         {
@@ -771,10 +801,41 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
         if (tags.hasKey("Energy"))
         {
             int energy = tags.getInteger("Energy");
-            if (energy > 0)
-                return getMaxEnergyStored(stack) - energy;
+            int max = getMaxEnergyStored(stack);
+            if(energy > 0) {
+                int damage = ((max - energy) * 100) / max;
+                if(damage == 0 && max-energy > 0)
+                    damage = 1;
+                super.setDamage(stack, damage);
+                return damage;
+            }
         }
-        return tags.getCompoundTag("InfiTool").getInteger("Damage");
+        int dur = tags.getCompoundTag("InfiTool").getInteger("Damage");
+        int max = tags.getCompoundTag("InfiTool").getInteger("TotalDurability");
+        int damage = 0;
+        if(max > 0)
+            damage = (dur*100)/max;
+
+        // rounding.
+        if(damage == 0 && dur > 0)
+            damage = 1;
+
+
+        // synchronize values with stack..
+        super.setDamage(stack, damage);
+        return damage;
+    }
+
+    @Override
+    public int getDisplayDamage(ItemStack stack) {
+        return getDamage(stack);
+    }
+
+
+    @Override
+    public void setDamage(ItemStack stack, int damage) {
+        AbilityHelper.damageTool(stack, damage - stack.getItemDamage(), null, false);
+        getDamage(stack); // called to synchronize with itemstack value
     }
 
     /* Prevent tools from dying */
@@ -789,42 +850,37 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     }
 
     // TE support section -- from COFH core API reference section
-    public void setMaxTransfer (int maxTransfer)
-    {
-        setMaxReceive(maxTransfer);
-        setMaxExtract(maxTransfer);
-    }
 
-    public void setMaxReceive (int maxReceive)
-    {
-        this.maxReceive = maxReceive;
-    }
-
-    public void setMaxExtract (int maxExtract)
-    {
-        this.maxExtract = maxExtract;
-    }
+    // TE power constants. These are only for backup if the lookup of the real value somehow fails!
+    protected int capacity = 400000;
+    protected int maxReceive = 400000;
+    protected int maxExtract = 80;
 
     /* IEnergyContainerItem */
     @Override
+    @Optional.Method(modid = "CoFHLib")
     public int receiveEnergy (ItemStack container, int maxReceive, boolean simulate)
     {
         NBTTagCompound tags = container.getTagCompound();
         if (tags == null || !tags.hasKey("Energy"))
             return 0;
         int energy = tags.getInteger("Energy");
-        int energyReceived = Math.min(capacity - energy, Math.min(this.maxReceive, maxReceive));
+        int energyReceived = tags.hasKey("EnergyReceiveRate") ? tags.getInteger("EnergyReceiveRate") : this.maxReceive; // backup value
+        int maxEnergy = tags.hasKey("EnergyMax") ? tags.getInteger("EnergyMax") : this.capacity; // backup value
+
+        // calculate how much we can receive
+        energyReceived = Math.min(maxEnergy - energy, Math.min(energyReceived, maxReceive));
         if (!simulate)
         {
             energy += energyReceived;
             tags.setInteger("Energy", energy);
-            container.setItemDamage(1 + (getMaxEnergyStored(container) - energy) * (container.getMaxDamage() - 2) / getMaxEnergyStored(container));
-
+            //container.setItemDamage(1 + (getMaxEnergyStored(container) - energy) * (container.getMaxDamage() - 2) / getMaxEnergyStored(container));
         }
         return energyReceived;
     }
 
     @Override
+    @Optional.Method(modid = "CoFHLib")
     public int extractEnergy (ItemStack container, int maxExtract, boolean simulate)
     {
         NBTTagCompound tags = container.getTagCompound();
@@ -833,18 +889,21 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
             return 0;
         }
         int energy = tags.getInteger("Energy");
-        int energyExtracted = Math.min(energy, Math.min(this.maxExtract, maxExtract));
+        int energyExtracted = tags.hasKey("EnergyExtractionRate") ? tags.getInteger("EnergyExtractionRate") : this.maxExtract; // backup value
+
+        // calculate how much we can extract
+        energyExtracted = Math.min(energy, Math.min(energyExtracted, maxExtract));
         if (!simulate)
         {
             energy -= energyExtracted;
             tags.setInteger("Energy", energy);
-            container.setItemDamage(1 + (getMaxEnergyStored(container) - energy) * (container.getMaxDamage() - 1) / getMaxEnergyStored(container));
-
+            //container.setItemDamage(1 + (getMaxEnergyStored(container) - energy) * (container.getMaxDamage() - 1) / getMaxEnergyStored(container));
         }
         return energyExtracted;
     }
 
     @Override
+    @Optional.Method(modid = "CoFHLib")
     public int getEnergyStored (ItemStack container)
     {
         NBTTagCompound tags = container.getTagCompound();
@@ -856,12 +915,42 @@ public abstract class ToolCore extends Item implements IEnergyContainerItem, IMo
     }
 
     @Override
+    @Optional.Method(modid = "CoFHLib")
     public int getMaxEnergyStored (ItemStack container)
     {
         NBTTagCompound tags = container.getTagCompound();
         if (tags == null || !tags.hasKey("Energy"))
             return 0;
+
+        if (tags.hasKey("EnergyMax"))
+            return tags.getInteger("EnergyMax");
+        // backup
         return capacity;
+    }
+
+    @Override
+    @Optional.Method(modid = "CoFHCore")
+    public boolean isLastHeldItemEqual(ItemStack current, ItemStack previous) {
+        if(!current.hasTagCompound() || !previous.hasTagCompound())
+            return false;
+
+        NBTTagCompound curTags = current.getTagCompound();
+        NBTTagCompound prevTags = previous.getTagCompound();
+        if(curTags == prevTags)
+            return true;
+        if(!curTags.hasKey("InfiTool") || !prevTags.hasKey("InfiTool"))
+            return false;
+
+        // create copies so we don't modify the original
+        curTags = (NBTTagCompound) curTags.copy();
+        prevTags = (NBTTagCompound) prevTags.copy();
+
+        curTags.removeTag("Energy");
+        prevTags.removeTag("Energy");
+        curTags.getCompoundTag("InfiTool").removeTag("Damage");
+        prevTags.getCompoundTag("InfiTool").removeTag("Damage");
+
+        return curTags.equals(prevTags);
     }
     // end of TE support section
 }

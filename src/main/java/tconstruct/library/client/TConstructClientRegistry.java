@@ -1,9 +1,6 @@
 package tconstruct.library.client;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.*;
 import mantle.lib.client.MantleClientRegistry;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -13,6 +10,8 @@ import tconstruct.library.tools.ToolCore;
 
 public class TConstructClientRegistry
 {
+    public static ArrayList<StencilGuiElement> stencilButtons = new ArrayList<StencilGuiElement>();
+    public static ArrayList<StencilGuiElement> stencilButtons2 = new ArrayList<StencilGuiElement>();
     public static ArrayList<ToolGuiElement> toolButtons = new ArrayList<ToolGuiElement>(20);
     public static ArrayList<ToolGuiElement> tierTwoButtons = new ArrayList<ToolGuiElement>();
     public static Map<String, ItemStack> manualIcons = new HashMap<String, ItemStack>();
@@ -87,9 +86,25 @@ public class TConstructClientRegistry
     public static void registerManualModifier (String name, ItemStack output, ItemStack topinput, ItemStack bottominput)
     {
         ItemStack[] recipe = new ItemStack[3];
-        recipe[0] = ModifyBuilder.instance.modifyItem(output, new ItemStack[] {topinput, bottominput});//ToolBuilder.instance.buildTool(output, topinput, bottominput, "");
+        recipe[0] = ModifyBuilder.instance.modifyItem(output, new ItemStack[] { topinput, bottominput });//ToolBuilder.instance.buildTool(output, topinput, bottominput, "");
         recipe[1] = topinput;
         recipe[2] = bottominput;
+        MantleClientRegistry.recipeIcons.put(name, recipe);
+    }
+
+    public static void registerManualModifier (String name, ItemStack output, ItemStack input1, ItemStack input2, ItemStack input3)
+    {
+        registerManualModifier(name, output, input1, input2, input3, null);
+    }
+
+    public static void registerManualModifier (String name, ItemStack output, ItemStack input1, ItemStack input2, ItemStack input3, ItemStack input4)
+    {
+        ItemStack[] recipe = new ItemStack[5];
+        recipe[0] = ModifyBuilder.instance.modifyItem(output, new ItemStack[] { input1, input2, input3, input4 });
+        recipe[1] = input1;
+        recipe[2] = input2;
+        recipe[3] = input3;
+        recipe[4] = input4;
         MantleClientRegistry.recipeIcons.put(name, recipe);
     }
 
@@ -103,6 +118,27 @@ public class TConstructClientRegistry
     }
 
     //Gui
+    public static void addStencilButton (StencilGuiElement element)
+    {
+        stencilButtons.add(element);
+    }
+
+    public static void addStencilButton (int xButton, int yButton, int index, String domain, String texture)
+    {
+        stencilButtons.add(new StencilGuiElement(xButton, yButton, index, domain, texture));
+    }
+
+    public static void addStencilButton2 (StencilGuiElement element)
+    {
+        stencilButtons.add(element);
+    }
+
+    // adds a button to the right side of the stencil table
+    public static void addStencilButton2 (int xButton, int yButton, int index, String domain, String texture)
+    {
+        stencilButtons2.add(new StencilGuiElement(xButton, yButton, index, domain, texture));
+    }
+
     public static void addToolButton (ToolGuiElement element)
     {
         toolButtons.add(element);

@@ -1,20 +1,20 @@
 package tconstruct.items.tools;
 
+import cpw.mods.fml.relauncher.*;
 import java.util.List;
-
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-import tconstruct.TConstruct;
+import tconstruct.library.TConstructRegistry;
 import tconstruct.library.crafting.ToolBuilder;
+import tconstruct.library.tools.BowstringMaterial;
+import tconstruct.library.tools.CustomMaterial;
+import tconstruct.library.tools.FletchingMaterial;
 import tconstruct.library.tools.ToolCore;
 import tconstruct.tools.TinkerTools;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class Arrow extends ToolCore
 {
@@ -43,6 +43,18 @@ public class Arrow extends ToolCore
         default:
             return "";
         }
+    }
+
+    @Override
+    protected int getDefaultColor(int renderPass, int materialID) {
+        // fletchling uses custom material
+        if(renderPass == 2) {
+            CustomMaterial mat = TConstructRegistry.getCustomMaterial(materialID, FletchingMaterial.class);
+            if(mat != null)
+                return mat.color;
+        }
+
+        return super.getDefaultColor(renderPass, materialID);
     }
 
     @Override
@@ -103,15 +115,7 @@ public class Arrow extends ToolCore
         Item extra = getExtraItem();
         ItemStack extraStack = extra != null ? new ItemStack(extra, 1, 0) : null;
         ItemStack tool = ToolBuilder.instance.buildTool(new ItemStack(getHeadItem(), 1, 3), new ItemStack(getHandleItem(), 1, 0), accessoryStack, extraStack, "");
-        if (tool == null)
-        {
-            if (!TinkerTools.supressMissingToolLogs)
-            {
-                TConstruct.logger.warn("Creative builder failed tool for Vanilla style" + this.getToolName());
-                TConstruct.logger.warn("Make sure you do not have item ID conflicts");
-            }
-        }
-        else
+        if (tool != null)
         {
             tool.stackSize = 1;
             tool.getTagCompound().getCompoundTag("InfiTool").setBoolean("Built", true);
@@ -123,21 +127,9 @@ public class Arrow extends ToolCore
         accessoryStack = accessory != null ? new ItemStack(getAccessoryItem(), 1, random.nextInt(4)) : null;
         extra = getExtraItem();
         extraStack = extra != null ? new ItemStack(extra, 1, 0) : null;
-        tool = ToolBuilder.instance
-                .buildTool(new ItemStack(getHeadItem(), 1, random.nextInt(18)), new ItemStack(getHandleItem(), 1, random.nextInt(18)), accessoryStack, extraStack, StatCollector.translateToLocal("item.tool.randomarrow"));
+        tool = ToolBuilder.instance.buildTool(new ItemStack(getHeadItem(), 1, random.nextInt(18)), new ItemStack(getHandleItem(), 1, random.nextInt(18)), accessoryStack, extraStack, StatCollector.translateToLocal("item.tool.randomarrow"));
 
-        if (tool == null)
-        {
-            if (!TinkerTools.supressMissingToolLogs)
-            {
-                if (!TinkerTools.supressMissingToolLogs)
-                {
-                    TConstruct.logger.warn("Creative builder failed tool for Vanilla style" + this.getToolName());
-                    TConstruct.logger.warn("Make sure you do not have item ID conflicts");
-                }
-            }
-        }
-        else
+        if (tool != null)
         {
             tool.stackSize = 1;
             tool.getTagCompound().getCompoundTag("InfiTool").setBoolean("Built", true);
@@ -153,13 +145,8 @@ public class Arrow extends ToolCore
         ItemStack accessoryStack = accessory != null ? new ItemStack(getAccessoryItem(), 1, 0) : null;
         Item extra = getExtraItem();
         ItemStack extraStack = extra != null ? new ItemStack(getExtraItem(), 1, id) : null;
-        ItemStack tool = ToolBuilder.instance.buildTool(new ItemStack(getHeadItem(), 1, id), new ItemStack(getHandleItem(), 1, id), accessoryStack, extraStack, name + getToolName());
-        if (tool == null)
-        {
-            TConstruct.logger.warn("Creative builder failed tool for " + name + this.getToolName());
-            TConstruct.logger.warn("Make sure you do not have item ID conflicts");
-        }
-        else
+        ItemStack tool = ToolBuilder.instance.buildTool(new ItemStack(getHeadItem(), 1, id), new ItemStack(getHandleItem(), 1, id), accessoryStack, extraStack, name);
+        if (tool != null)
         {
             tool.stackSize = 1;
             tool.getTagCompound().getCompoundTag("InfiTool").setBoolean("Built", true);

@@ -1,24 +1,20 @@
 package tconstruct.smeltery.model;
 
+import cpw.mods.fml.client.registry.*;
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.IBlockAccess;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-
+import net.minecraftforge.fluids.*;
 import org.lwjgl.opengl.GL11;
-
 import tconstruct.client.BlockSkinRenderHelper;
 import tconstruct.smeltery.logic.LavaTankLogic;
 import tconstruct.util.ItemHelper;
-import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class TankRender implements ISimpleBlockRenderingHandler
 {
     public static int tankModelID = RenderingRegistry.getNextAvailableRenderId();
+    public static int renderPass = 0;
 
     @Override
     public void renderInventoryBlock (Block block, int metadata, int modelID, RenderBlocks renderer)
@@ -26,6 +22,7 @@ public class TankRender implements ISimpleBlockRenderingHandler
         if (modelID == tankModelID)
         {
             ItemHelper.renderStandardInvBlock(renderer, block, metadata);
+            // the thingie on top of lava tanks
             if (metadata == 0)
             {
                 renderer.setRenderBounds(0.1875, 0, 0.1875, 0.8125, 0.125, 0.8125);
@@ -40,29 +37,31 @@ public class TankRender implements ISimpleBlockRenderingHandler
         if (modelID == tankModelID)
         {
             //Liquid
-            LavaTankLogic logic = (LavaTankLogic) world.getTileEntity(x, y, z);
-            if (logic.containsFluid())
+            if (renderPass == 0)
             {
-                FluidStack liquid = logic.tank.getFluid();
-                renderer.setRenderBounds(0.001, 0.001, 0.001, 0.999, logic.getFluidAmountScaled(), 0.999);
-                Fluid fluid = liquid.getFluid();
-                if (fluid.canBePlacedInWorld())
-                    BlockSkinRenderHelper.renderMetadataBlock(fluid.getBlock(), 0, x, y, z, renderer, world);
-                else
-                    BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world);
+                LavaTankLogic logic = (LavaTankLogic) world.getTileEntity(x, y, z);
+                if (logic.containsFluid())
+                {
+                    FluidStack liquid = logic.tank.getFluid();
+                    renderer.setRenderBounds(0.001, 0.001, 0.001, 0.999, logic.getFluidAmountScaled(), 0.999);
+                    Fluid fluid = liquid.getFluid();
+                    BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getStillIcon(), x, y, z, renderer, world, false, fluid.getColor(liquid));
 
-                renderer.setRenderBounds(00, 0.001, 0.001, 0.999, logic.getFluidAmountScaled(), 0.999);
+                    renderer.setRenderBounds(0, 0.001, 0.001, 0.999, logic.getFluidAmountScaled(), 0.999);
+                }
             }
-
             //Block
-            int meta = world.getBlockMetadata(x, y, z);
-            if (meta == 0 && world.getBlock(x, y + 1, z) == Blocks.air)
+            else
             {
-                renderer.setRenderBounds(0.1875, 0, 0.1875, 0.8125, 0.125, 0.8125);
-                renderer.renderStandardBlock(block, x, y + 1, z);
+                int meta = world.getBlockMetadata(x, y, z);
+                if (meta == 0 && world.getBlock(x, y + 1, z) == Blocks.air)
+                {
+                    renderer.setRenderBounds(0.1875, 0, 0.1875, 0.8125, 0.125, 0.8125);
+                    renderer.renderStandardBlock(block, x, y + 1, z);
+                }
+                renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
+                renderer.renderStandardBlock(block, x, y, z);
             }
-            renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
-            renderer.renderStandardBlock(block, x, y, z);
         }
         return true;
     }

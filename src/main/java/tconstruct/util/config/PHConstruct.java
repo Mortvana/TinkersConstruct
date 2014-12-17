@@ -1,12 +1,9 @@
 package tconstruct.util.config;
 
 import java.io.File;
-
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
+import net.minecraftforge.common.config.*;
 import tconstruct.TConstruct;
 import tconstruct.library.tools.AbilityHelper;
-import tconstruct.tools.TinkerTools;
 
 public class PHConstruct
 {
@@ -42,11 +39,12 @@ public class PHConstruct
         //config.load(); /* Load happens in the constructor */
 
         superfunWorld = config.get("Superfun", "All the world is Superfun", false).getBoolean(false);
-        TinkerTools.supressMissingToolLogs = config.get("Logging", "Disable tool build messages", false).getBoolean(false);
 
         keepHunger = config.get("Difficulty Changes", "Keep hunger on death", true).getBoolean(true);
         keepLevels = config.get("Difficulty Changes", "Keep levels on death", true).getBoolean(true);
         beginnerBook = config.get("Difficulty Changes", "Spawn beginner book", true).getBoolean(true);
+        deathPenality = config.get("Difficulty Changes", "Tools lose 10% durability on death", true).getBoolean(true);
+        balancedFluxModifier = config.get("Difficulty Changes", "Balanced Flux Modifier", true).getBoolean(true);
 
         enableTWood = config.get("Difficulty Changes", "Enable mod wooden tools", true).getBoolean(true);
         enableTStone = config.get("Difficulty Changes", "Enable mod stone tools", true).getBoolean(true);
@@ -67,6 +65,8 @@ public class PHConstruct
         denyMattock = config.get("Difficulty Changes", "Deny creation of non-metal mattocks", false).getBoolean(false);
         craftEndstone = config.get("Difficulty Changes", "Allow creation of endstone", true).getBoolean(true);
 
+        naturalSlimeSpawn = config.get("Mobs", "Blue Slime spawn chance", 1, "Set to 0 to disable").getInt(1);
+
         ingotsPerOre = config.get("Smeltery Output Modification", "Ingots per ore", 2, "Number of ingots returned from smelting ores in the smeltery").getDouble(2);
         ingotsBronzeAlloy = config.get("Smeltery Output Modification", "Bronze ingot return", 4, "Number of ingots returned from smelting Bronze in the smeltery").getDouble(4);
         ingotsAluminumBrassAlloy = config.get("Smeltery Output Modification", "Aluminum Brass ingot return", 4, "Number of ingots returned from smelting Aluminum Brass in the smeltery").getDouble(4);
@@ -75,6 +75,8 @@ public class PHConstruct
         ingotsPigironAlloy = config.get("Smeltery Output Modification", "Pig Iron ingot return", 1, "Number of ingots returned from smelting Pig Iron in the smeltery").getDouble(1);
 
         capesEnabled = config.get("Superfun", "Enable-TCon-Capes", true).getBoolean(true);
+
+        achievementsEnabled = config.get("Achievements", "Enable Achievements", true).getBoolean(true);
 
         boolean ic2 = true;
         boolean xycraft = true;
@@ -155,6 +157,7 @@ public class PHConstruct
         aluminumBushMaxY = config.get("Worldgen", "Aluminum Bush Max Y", 60).getInt(60);
 
         seaLevel = config.get("general", "Sea level", 64).getInt(64);
+        tconComesFirst = config.get("general", "Always cast TConstruct ingots", true, "You will always get a TConstruct item from casting an ingot or block.").getBoolean();
 
         enableHealthRegen = config.get("Ultra Hardcore Changes", "Passive Health Regen", true).getBoolean(true);
         goldAppleRecipe = config.get("Ultra Hardcore Changes", "Change Crafting Recipes", false, "Makes recipes for gold apples, carrots, and melon potions more expensive").getBoolean(false);
@@ -175,8 +178,7 @@ public class PHConstruct
 
         // dimension blacklist
         cfgDimBlackList = config.get("DimBlackList", "SlimeIslandDimBlacklist", new int[] {}, "Add dimension ID's to prevent slime islands from generating in them").getIntList();
-        slimeIslGenDim0Only = config.get("DimBlackList", "GenerateSlimeIslandInDim0Only", false,
-                "True: slime islands wont generate in any ages other than overworld(if enabled); False: will generate in all non-blackisted ages").getBoolean(false);
+        slimeIslGenDim0Only = config.get("DimBlackList", "GenerateSlimeIslandInDim0Only", false, "True: slime islands wont generate in any ages other than overworld(if enabled); False: will generate in all non-blackisted ages").getBoolean(false);
         slimeIslGenDim0 = config.get("DimBlackList", "slimeIslGenDim0", true, "True: slime islands generate in overworld; False they do not generate").getBoolean(true);
         genIslandsFlat = config.get("DimBlacklist", "genIslandsFlat", false, "Generate slime islands in flat worlds").getBoolean(false);
 
@@ -184,6 +186,8 @@ public class PHConstruct
         throwableSmeltery = config.get("Experimental", "Items can be thrown into smelteries", true).getBoolean(true);
         newSmeltery = config.get("Experimental", "Use new adaptive Smeltery code", false, "Warning: Very buggy").getBoolean(false);
         meltableHorses = config.get("Experimental", "Allow horses to be melted down for glue", true).getBoolean(true);
+        minimalTextures = config.get("Experimental", "Minimal Textures", false).getBoolean(false);
+        extraBlockUpdates = config.get("Experimental", "Send additional block updates when using AOE tools", true,"This fixes very fast tools sometimes resulting in ghost blocks, but causes a bit more network traffic. Should be fine in theory.").getBoolean(true);
 
         /* Save the configuration file only if it has changed */
         if (config.hasChanged())
@@ -209,6 +213,9 @@ public class PHConstruct
     public static boolean cropifyModule;
 
     public static boolean capesEnabled;
+
+    // Achievements
+    public static boolean achievementsEnabled;
 
     // Ore values
     public static boolean generateCopper;
@@ -273,14 +280,18 @@ public class PHConstruct
     public static int aluminumBushMaxY;
 
     public static int seaLevel;
+    public static boolean tconComesFirst;
 
     // Mobs
+    public static int naturalSlimeSpawn;
 
     // Difficulty modifiers
     public static boolean keepHunger;
     public static boolean keepLevels;
+    public static boolean deathPenality;
     public static boolean alphaRegen;
     public static boolean alphaHunger;
+    public static boolean balancedFluxModifier;
 
     public static boolean disableWoodTools;
     public static boolean disableStoneTools;
@@ -346,5 +357,7 @@ public class PHConstruct
     public static boolean throwableSmeltery;
     public static boolean newSmeltery;
     public static boolean meltableHorses;
+    public static boolean minimalTextures;
+    public static boolean extraBlockUpdates;
 
 }

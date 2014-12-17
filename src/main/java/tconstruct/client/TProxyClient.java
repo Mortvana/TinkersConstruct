@@ -1,22 +1,15 @@
 package tconstruct.client;
 
 import java.io.InputStream;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
+import javax.xml.parsers.*;
 import mantle.client.SmallFontRenderer;
 import mantle.lib.client.MantleClientRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderItem;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
+import net.minecraft.init.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.IIcon;
-import net.minecraft.util.ResourceLocation;
-
+import net.minecraft.util.*;
 import org.w3c.dom.Document;
-
 import tconstruct.TConstruct;
 import tconstruct.armor.ArmorProxyClient;
 import tconstruct.armor.player.TPlayerStats;
@@ -31,12 +24,12 @@ public class TProxyClient extends TProxyCommon
     public static Minecraft mc;
     public static RenderItem itemRenderer = new RenderItem();
 
-    public void initialize()
+    public void initialize ()
     {
         registerRenderer();
         readManuals();
     }
-    
+
     /* Registers any rendering code. */
     public void registerRenderer ()
     {
@@ -53,11 +46,39 @@ public class TProxyClient extends TProxyCommon
     public void readManuals ()
     {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        diary = readManual("/assets/tinker/manuals/diary.xml", dbFactory);
-        volume1 = readManual("/assets/tinker/manuals/firstday.xml", dbFactory);
-        volume2 = readManual("/assets/tinker/manuals/materials.xml", dbFactory);
-        smelter = readManual("/assets/tinker/manuals/smeltery.xml", dbFactory);
-        initManualIcons();
+	String CurrentLanguage = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage().getLanguageCode();
+		
+	Document diary_cl = readManual("/assets/tinker/manuals/" + CurrentLanguage + "/diary.xml", dbFactory);
+	Document volume1_cl = readManual("/assets/tinker/manuals/" + CurrentLanguage + "/firstday.xml", dbFactory);
+	Document volume2_cl = readManual("/assets/tinker/manuals/" + CurrentLanguage + "/materials.xml", dbFactory);
+	Document smelter_cl = readManual("/assets/tinker/manuals/" + CurrentLanguage + "/smeltery.xml", dbFactory);
+		
+	diary = readManual("/assets/tinker/manuals/en_US/diary.xml", dbFactory);
+	volume1 = readManual("/assets/tinker/manuals/en_US/firstday.xml", dbFactory);
+	volume2 = readManual("/assets/tinker/manuals/en_US/materials.xml", dbFactory);
+	smelter = readManual("/assets/tinker/manuals/en_US/smeltery.xml", dbFactory);
+		
+	if(diary_cl != null)
+	{
+		diary = diary_cl;
+	}
+		
+	if(volume1_cl != null)
+	{
+		volume1 = volume1_cl;
+	}
+		
+	if(volume2_cl != null)
+	{
+		volume2 = volume2_cl;
+	}
+		
+	if(smelter_cl != null)
+	{
+		smelter = smelter_cl;
+	}
+			
+	initManualIcons();
         initManualRecipes();
         initManualPages();
         manualData = new ManualInfo();

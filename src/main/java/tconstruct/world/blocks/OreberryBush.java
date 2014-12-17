@@ -1,10 +1,8 @@
 package tconstruct.world.blocks;
 
-import java.util.List;
-import java.util.Random;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockLeavesBase;
+import cpw.mods.fml.relauncher.*;
+import java.util.*;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -12,22 +10,16 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.IIcon;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import net.minecraftforge.common.EnumPlantType;
-import net.minecraftforge.common.IPlantable;
+import net.minecraft.item.*;
+import net.minecraft.util.*;
+import net.minecraft.world.*;
+import net.minecraftforge.common.*;
 import net.minecraftforge.common.util.ForgeDirection;
+import tconstruct.TConstruct;
 import tconstruct.library.TConstructRegistry;
 import tconstruct.library.tools.AbilityHelper;
 import tconstruct.world.TinkerWorld;
 import tconstruct.world.model.OreberryRender;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class OreberryBush extends BlockLeavesBase implements IPlantable
 {
@@ -184,24 +176,18 @@ public class OreberryBush extends BlockLeavesBase implements IPlantable
     @Override
     public void onBlockClicked (World world, int x, int y, int z, EntityPlayer player)
     {
-        if (!world.isRemote)
-        {
-            int meta = world.getBlockMetadata(x, y, z);
-            if (meta >= 12)
-            {
-                world.setBlock(x, y, z, this, meta - 4, 3);
-                AbilityHelper.spawnItemAtPlayer(player, new ItemStack(TinkerWorld.oreBerries, 1, meta % 4 + itemMeat));
-            }
-        }
+        harvest(world, x,y,z, player);
     }
 
     /* Right-click harvests berries */
     @Override
     public boolean onBlockActivated (World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9)
     {
-        /*if (world.isRemote)
-            return false;*/
+        return harvest(world, x,y,z, player);
+    }
 
+    public boolean harvest(World world, int x, int y, int z, EntityPlayer player)
+    {
         int meta = world.getBlockMetadata(x, y, z);
         if (meta >= 12)
         {
@@ -210,7 +196,6 @@ public class OreberryBush extends BlockLeavesBase implements IPlantable
 
             world.setBlock(x, y, z, this, meta - 4, 3);
             AbilityHelper.spawnItemAtPlayer(player, new ItemStack(TinkerWorld.oreBerries, random.nextInt(3) + 1, meta % 4 + itemMeat));
-            return true;
         }
 
         return false;

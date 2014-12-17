@@ -1,27 +1,21 @@
 package tconstruct.armor.blocks;
 
+import cpw.mods.fml.relauncher.*;
 import java.util.List;
-
 import mantle.blocks.abstracts.InventoryBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.IIcon;
-import net.minecraft.util.MathHelper;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
+import net.minecraft.util.*;
+import net.minecraft.world.*;
 import tconstruct.TConstruct;
 import tconstruct.armor.modelblock.DryingRackRender;
 import tconstruct.blocks.logic.DryingRackLogic;
 import tconstruct.library.TConstructRegistry;
 import tconstruct.library.tools.AbilityHelper;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class DryingRack extends InventoryBlock
 {
@@ -102,22 +96,14 @@ public class DryingRack extends InventoryBlock
             }
             else
             {
-                if (logic.isStackInSlot(0))
-                {
-                    ItemStack decrStack = logic.decrStackSize(0, 1);
-                    if (decrStack != null)
-                        addItemToInventory(player, world, x, y, z, decrStack);
-                }
+                ItemStack decrStack = logic.decrStackSize(0, 1);
+                if (decrStack != null)
+                    AbilityHelper.spawnItemAtPlayer(player, decrStack);
             }
 
             world.markBlockForUpdate(x, y, z);
         }
         return true;
-    }
-
-    public void addItemToInventory (EntityPlayer player, World world, int x, int y, int z, ItemStack stack)
-    {
-        AbilityHelper.spawnItemAtPlayer(player, stack);
     }
 
     @Override

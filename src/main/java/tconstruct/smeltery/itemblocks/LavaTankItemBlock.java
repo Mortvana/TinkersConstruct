@@ -1,7 +1,6 @@
 package tconstruct.smeltery.itemblocks;
 
 import java.util.List;
-
 import mantle.blocks.abstracts.MultiItemBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -34,6 +33,7 @@ public class LavaTankItemBlock extends MultiItemBlock
         }
         else
         {
+            list.add(StatCollector.translateToLocal("searedtank3.tooltip"));
             list.add(StatCollector.translateToLocal("searedtank2.tooltip"));
         }
     }

@@ -1,21 +1,19 @@
 package tconstruct.world.items;
 
+import cpw.mods.fml.relauncher.*;
 import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.potion.*;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class StrangeFood extends SpecialFood
 {
     public StrangeFood()
     {
         super(new int[] { 2, 2, 4 }, new float[] { 1f, 1f, 0.6f }, new String[] { "edibleslime", "edibleblood", "bacon" }, new String[] { "food/edibleslime", "food/edibleblood", "food/bacon" });
+        this.setHasSubtypes(true);
     }
 
     @Override

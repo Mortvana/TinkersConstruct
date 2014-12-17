@@ -3,11 +3,8 @@ package tconstruct.plugins.waila;
 import mcp.mobius.waila.api.IWailaRegistrar;
 import net.minecraftforge.fluids.FluidStack;
 import tconstruct.TConstruct;
-import tconstruct.smeltery.blocks.LavaTankBlock;
-import tconstruct.smeltery.blocks.SmelteryBlock;
-import tconstruct.smeltery.logic.CastingBasinLogic;
-import tconstruct.smeltery.logic.CastingChannelLogic;
-import tconstruct.smeltery.logic.CastingTableLogic;
+import tconstruct.smeltery.blocks.*;
+import tconstruct.smeltery.logic.*;
 
 public class WailaRegistrar
 {
@@ -37,7 +34,7 @@ public class WailaRegistrar
 
     public static String fluidNameHelper (FluidStack f)
     {
-        return f.getFluid().getLocalizedName(f);
+        return f.getFluid().getLocalizedName();
     }
 
 }

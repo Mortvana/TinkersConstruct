@@ -4,11 +4,11 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.*;
 import tconstruct.library.TConstructRegistry;
+import tconstruct.smeltery.TinkerSmeltery;
 import tconstruct.smeltery.logic.CastingChannelLogic;
 import tconstruct.smeltery.model.BlockRenderCastingChannel;
 
@@ -34,9 +34,13 @@ public class CastingChannelBlock extends BlockContainer
         ItemStack stack = player.getCurrentEquippedItem();
         CastingChannelLogic tile = (CastingChannelLogic) world.getTileEntity(x, y, z);
 
-        if (stack == null)
+        if (stack != null && stack.getItem() == Item.getItemFromBlock(TinkerSmeltery.castingChannel))
+            return false;
+        else
+        {
             tile.changeOutputs(player, side, hitX, hitY, hitZ);
-        return true;
+            return true;
+        }
     }
 
     @Override
@@ -59,7 +63,7 @@ public class CastingChannelBlock extends BlockContainer
     {
         return false;
     }
-    
+
     @Override
     public boolean isOpaqueCube ()
     {

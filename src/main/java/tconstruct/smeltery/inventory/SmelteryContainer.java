@@ -1,11 +1,11 @@
 package tconstruct.smeltery.inventory;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.entity.player.*;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import tconstruct.smeltery.TinkerSmeltery;
+import tconstruct.smeltery.gui.SmelteryGui;
 import tconstruct.smeltery.logic.SmelteryLogic;
 
 public class SmelteryContainer extends ActiveContainer
@@ -13,36 +13,46 @@ public class SmelteryContainer extends ActiveContainer
     public SmelteryLogic logic;
     public InventoryPlayer playerInv;
     public int fuel = 0;
-    int slotRow;
+    private int slotRow;
+    public int columns;
+    public final int smelterySize;
 
     public SmelteryContainer(InventoryPlayer inventoryplayer, SmelteryLogic smeltery)
     {
         logic = smeltery;
         playerInv = inventoryplayer;
         slotRow = 0;
+        columns = smeltery.getBlocksPerLayer() >= 16 ? 4 : 3;
+        smelterySize = smeltery.getBlockCapacity();
 
         /* Smeltery inventory */
 
-        for (int y = 0; y < smeltery.layers * 3; y++)
+        // new rectangular smeltery
+        int totalSlots = smeltery.getBlockCapacity();
+        int y = 0;
+
+        for (int i = 0; i < totalSlots; i++)
         {
-            for (int x = 0; x < 3; x++)
-            {
-                this.addDualSlotToContainer(new ActiveSlot(smeltery, x + y * 3, 2 + x * 22, 8 + y * 18, y < 8));
-            }
+            int x = i % columns;
+            this.addDualSlotToContainer(new ActiveSlot(smeltery, x + y * columns, 2 + x * 22, 8 + y * 18, y < 8));
+            if (x == columns - 1)
+                y++;
         }
+        
+        int baseX = 90 + (columns - 3) * 22;
 
         /* Player inventory */
-        for (int column = 0; column < 3; column++)
+        for (int row = 0; row < 3; row++)
         {
-            for (int row = 0; row < 9; row++)
+            for (int column = 0; column < 9; column++)
             {
-                this.addSlotToContainer(new Slot(inventoryplayer, row + column * 9 + 9, 90 + row * 18, 84 + column * 18));
+                this.addSlotToContainer(new Slot(inventoryplayer, column + row * 9 + 9, baseX + column * 18, 84 + row * 18));
             }
         }
 
         for (int column = 0; column < 9; column++)
         {
-            this.addSlotToContainer(new Slot(inventoryplayer, column, 90 + column * 18, 142));
+            this.addSlotToContainer(new Slot(inventoryplayer, column, baseX + column * 18, 142));
         }
     }
 
@@ -52,11 +62,11 @@ public class SmelteryContainer extends ActiveContainer
         {
             slotRow = invRow;
             // TConstruct.logger.info(invRow);
-            int basePos = invRow * 3;
+            int basePos = invRow * columns;
             for (int iter = 0; iter < activeInventorySlots.size(); iter++)
             {
                 ActiveSlot slot = (ActiveSlot) activeInventorySlots.get(iter);
-                if (slot.activeSlotNumber >= basePos && slot.activeSlotNumber < basePos + 24)
+                if (slot.activeSlotNumber >= basePos && slot.activeSlotNumber < basePos + columns * SmelteryGui.maxRows)
                 {
                     slot.setActive(true);
                 }
@@ -64,8 +74,9 @@ public class SmelteryContainer extends ActiveContainer
                 {
                     slot.setActive(false);
                 }
-                int xPos = (iter - basePos) % 3;
-                int yPos = (iter - basePos) / 3;
+
+                int xPos = (iter - basePos) % columns;
+                int yPos = (iter - basePos) / columns;
                 slot.xDisplayPosition = 2 + 22 * xPos;
                 slot.yDisplayPosition = 8 + 18 * yPos;
             }
@@ -76,15 +87,20 @@ public class SmelteryContainer extends ActiveContainer
 
     public int scrollTo (float scrollPos)
     {
-        float total = (logic.getSizeInventory() - 24) / 3;
-        int rowPos = (int) (total * scrollPos);
+        int slots = SmelteryGui.maxRows * columns;
+        float total = (logic.getSizeInventory() - slots) / columns;
+        if ((logic.getSizeInventory() - slots) % columns != 0)
+            total++;
+        int rowPos = Math.round(total * scrollPos);
         return updateRows(rowPos);
     }
 
     @Override
     public void detectAndSendChanges () // TODO: Sync with this
     {
-        super.detectAndSendChanges();
+        // we only update if the size is the same, since the screen is getting closed on sizechange and would cause a crash otherwise
+        if(smelterySize == this.inventorySlots.size())
+            super.detectAndSendChanges();
         /*
          * for (int i = 0; i < crafters.size(); i++) { ICrafting icrafting =
          * (ICrafting)crafters.get(i); if (progress != logic.progress) {
@@ -133,14 +149,14 @@ public class SmelteryContainer extends ActiveContainer
             ItemStack slotStack = slot.getStack();
             stack = slotStack.copy();
 
-            if (slotID < logic.getSizeInventory())
+            if (slotID < smelterySize)
             {
                 if (!this.mergeItemStack(slotStack, logic.getSizeInventory(), this.inventorySlots.size(), true))
                 {
                     return null;
                 }
             }
-            else if (!this.mergeItemStack(slotStack, 0, logic.getSizeInventory(), false))
+            else if (!this.mergeItemStack(slotStack, 0, smelterySize, false))
             {
                 return null;
             }
@@ -202,7 +218,7 @@ public class SmelteryContainer extends ActiveContainer
                 slot = (Slot) this.inventorySlots.get(slotPos);
                 slotStack = slot.getStack();
 
-                if (slotStack != null && ItemStack.areItemStacksEqual(slotStack, inputStack))
+                if (slotStack != null && slotStack.isItemEqual(inputStack) && ItemStack.areItemStackTagsEqual(slotStack, inputStack))
                 {
                     int l = slotStack.stackSize + inputStack.stackSize;
 

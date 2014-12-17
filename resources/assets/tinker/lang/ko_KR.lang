@@ -81,7 +81,7 @@ block.brick.gold.name=금 벽돌
 block.brick.diamond.name=다이아몬드 벽돌
 block.brick.lapis.name=청금석 벽돌
 block.brick.stone.refined.name=다듬은 석재 벽돌
-block.brick.redstone.name=레드스톤  벽돌
+block.brick.redstone.name=레드스톤 벽돌
 block.brick.bone.name=뼈 벽돌
 block.brick.slime.name=슬라임 벽돌
 block.brick.blueslime.name=푸른 슬라임 벽돌
@@ -160,8 +160,11 @@ item.InfiTool.Battleaxe.name=전투용 도끼
 item.InfiTool.Cutlass.name=커틀러스
 item.InfiTool.Shortbow.name=단궁
 item.InfiTool.Arrow.name=화살
-item.InfiTool.PotionLauncher.name=포션 발사기
+
 item.InfiTool.Mattock.name=야전삽
+
+item.InfiTool.PotionLauncher.name=포션 발사기
+
 
 item.tool.randomarrow=랜덤 스트리머
 
@@ -350,10 +353,10 @@ block.stainedglass.magenta.name=다홍색 스테인드글래스
 block.stainedglass.lightblue.name=하늘색 스테인드글래스
 block.stainedglass.yellow.name=노란색 스테인드글래스
 block.stainedglass.lime.name=연두색 스테인드글래스
-block.stainedglass.pink.name=분홍색 스테인드글라스
+block.stainedglass.pink.name=분홍색 스테인드글래스
 block.stainedglass.gray.name=회색 스테인드글래스
 block.stainedglass.lightgray.name=밝은 회색 스테인드글래스
-block.stainedglass.cyan.name=청록색 스테인드글라스
+block.stainedglass.cyan.name=청록색 스테인드글래스
 block.stainedglass.purple.name=보라색 스테인드글래스
 block.stainedglass.blue.name=파란색 스테인드글래스
 block.stainedglass.brown.name=갈색 스테인드글래스
@@ -405,7 +408,7 @@ block.slime.congealed.blue.name=굳은 파란 슬라임
 block.slime.congealed.green.name=굳은 초록 슬라임
 block.slime.congealed.purple.name=굳은 보라 슬라임
 
-item.tconstruct.storage.knapsack.name=배낭  
+item.tconstruct.storage.knapsack.name=배낭 
 item.tconstruct.blankpattern.pattern.name=빈 문양
 item.tconstruct.blankpattern.cast.name=빈 주형
 
@@ -542,33 +545,13 @@ death.four.smeltery=%1$s는 뜨거운 액체 속에서 수영하는 것을 그�
 death.attack.Landmine=%1$s의 다리가 지뢰에 의해 파괴되었습니다
 death.attack.FireworkExplode=%1$s가 불꽃놀이 폭발에 의해 거열당했습니다
 
-parttype.wood=나무
-parttype.stone=돌
-parttype.iron=철
-parttype.flint=부싯돌
-parttype.cactus=선인장
-parttype.bone=뼈
-parttype.obsidian=흑요석
-parttype.slime=슬라임
-parttype.paper=종이
-parttype.netherrack=네더랙
-parttype.cobalt=코발트
-parttype.ardite=아르다이트
-parttype.manyullyn=마뉼린
-parttype.copper=구리
-parttype.bronze=청동
-parttype.alumite=알루마이트
-parttype.steel=강철
-parttype.blueslime=푸른 슬라임
-parttype.thaumium=사우뮴
-parttype.pigiron=돼지 선철
 
-toolpart.ToolRod=%%material 도구 막대기
-toolpart.PickHead=%%material 곡괭이 머리
+toolpart.ToolRod=%%material 막대기
+toolpart.PickaxeHead=%%material 곡괭이 머리
 toolpart.ShovelHead=%%material 삽 머리
 toolpart.AxeHead=%%material 도끼 날
 toolpart.Binding=%%material 도구 조임쇠
-toolpart.ToughBind=%%material 두꺼운 조임쇠
+toolpart.ToughBinding=%%material 두꺼운 조임쇠
 toolpart.ToughRod=%%material 두꺼운 막대기
 toolpart.LargePlate=%%material 대형 강화판
 toolpart.SwordBlade=%%material 검 날
@@ -581,7 +564,7 @@ toolpart.FrypanHead=%%material 팬
 toolpart.SignHead=%%material 표지판 머리
 toolpart.ChiselHead=%%material 정 머리
 toolpart.ScytheHead=%%material 낫 날
-toolpart.LumberHead=%%material 넓은 도끼 날
+toolpart.LumberAxeHead=%%material 넓은 도끼 날
 toolpart.ExcavatorHead=%%material 굴착기 머리
 toolpart.ToolShard=%%material 조각
 toolpart.LargeSwordBlade=%%material 넓은 검 날
@@ -589,6 +572,11 @@ toolpart.HammerHead=%%material 망치 머리
 toolpart.Bowstring=%%material 활 시위
 toolpart.ArrowHead=%%material 화살촉
 toolpart.Fletching=%%material 화살 깃
+
+# Now with translations of specific material and part combinations:
+#toolpart.ToolRod.wood=Wooden Tool Rod
+# If only the material part has to be specific, you can use this
+#toolpart.material.wood=Wooden
 
 fluid.iron.molten=녹은 철
 fluid.gold.molten=녹은 금
@@ -625,7 +613,7 @@ achievement.tconstruct.tinkerer=대장장이
 achievement.tconstruct.proTinkerer=숙련된 대장장이
 achievement.tconstruct.smelteryMaker=대장간
 achievement.tconstruct.preparedFight=전투 완비
-achievement.tconstruct.enemySlayer=적장, 물리쳤다!
+achievement.tconstruct.enemySlayer=몬스터 살육자
 achievement.tconstruct.dualConvenience=두 가지 기능
 achievement.tconstruct.doingItWrong=실수
 achievement.tconstruct.betterCrafting=고급 조합
@@ -712,6 +700,22 @@ smeltery.drain.tooltip1=제련소 안의 액체를
 smeltery.drain.tooltip2=빼내거나 다시 집어넣을 수 있음
 smeltery.brick.tooltip1=제련소 구성 블럭
 smeltery.brick.tooltip2=(장식용으로 사용 가능)
+#Dear translators, only translate this line if the joke is applicable in your language.
+grout.tooltip=I am Grout!
+
+tconstruct.waila.empty=비어있음
+tconstruct.waila.liquidtag=액체: 
+tconstruct.waila.amounttag=수량: 
+tconstruct.waila.contains=들어있는 액체: 
+tconstruct.waila.subtanks=서브탱크:
+tconstruct.waila.invalidstructure=잘못된 구조
+
+tconstruct.nei.toolmaterials=도구 재료
+tconstruct.nei.alloying=합금제작
+tconstruct.nei.castingbasin=블럭 주조
+tconstruct.nei.castingtable=테이블 주조
+tconstruct.nei.dryingrack=건조대
+tconstruct.nei.melting=융화
 
 gui.smeltery.fuel=연료
 gui.smeltery.emerald=에메랄드 수: 
@@ -731,12 +735,13 @@ gui.partcrafter7=채광 수준:
 gui.partcrafter8= 하트
 gui.partcrafter9= 하트
 gui.partcrafter10=공격력: 
-gui.partcrafter.mining1=돌, 석탄
-gui.partcrafter.mining2=철, 청금석
-gui.partcrafter.mining3=레드스톤, 금, 다이아몬드
-gui.partcrafter.mining4=흑요석
-gui.partcrafter.mining5=코발트, 아르다이트
-gui.partcrafter.mining6=마뉼린
+gui.partcrafter11=최대 내구도: 
+gui.mining1=돌, 석탄
+gui.mining2=철, 청금석
+gui.mining3=레드스톤, 금, 다이아몬드
+gui.mining4=흑요석
+gui.mining5=코발트, 아르다이트
+gui.mining6=마뉼린
 gui.stenciltable1=다음 문양
 gui.stenciltable2=이전 문양
 gui.toolforge1=수리와 업그레이드
@@ -759,27 +764,60 @@ gui.toolstation15=채광 수준:
 gui.toolstation16=사용 속도: 
 gui.toolstation17=업그레이드
 gui.toolstation18=남은 업그레이드 횟수: 
+gui.toolstation19=데미지 감소: 
+gui.toolstation20=보호: 
 
-gui.partbuilder.material.wood=나무
-gui.partbuilder.material.stone=돌
-gui.partbuilder.material.iron=철
-gui.partbuilder.material.flint=부싯돌
-gui.partbuilder.material.cactus=선인장
-gui.partbuilder.material.bone=뼈
-gui.partbuilder.material.obsidian=흑요석
-gui.partbuilder.material.netherrack=네더랙
-gui.partbuilder.material.slime=슬라임
-gui.partbuilder.material.paper=종이:
-gui.partbuilder.material.blueslime=푸른 슬라임
-gui.partbuilder.material.cobalt=코발트
-gui.partbuilder.material.ardite=아르다이트
-gui.partbuilder.material.manyullyn=마뉼린
-gui.partbuilder.material.copper=구리
-gui.partbuilder.material.bronze=청동
-gui.partbuilder.material.alumite=알루마이트
-gui.partbuilder.material.steel=강철
-gui.partbuilder.material.pigiron=돼지 선철
-gui.partbuilder.material.thaumium=사우뮴
+gui.toolstation.pickaxe.desc=곡괭이는 채광에 필요한 도구입니다. 돌과 광석블럭을 빠르게 부숩니다.\n\n필요부품:\n- 곡괭이머리\n- 조임쇠\n- 손잡이
+gui.toolstation.shovel.desc=삽은 땅을팔때 필요한 도구입니다. 흙과모래 그리고 눈을 빠르게 부숩니다.\n\n필요부품:\n- 삽 머리\n-손잡이
+gui.toolstation.hatchet.desc=손도끼는 벌목에 필요한 도구입니다. 나무와 잎을 빠르게 부숩니다.\n\n필요부품:\n- 도끼 머리\n-손잡이
+gui.toolstation.mattock.desc=매톡은 다양한 농업용도구입니다. 나무,흙,식물들을 빠르게 부숩니다.\n\n특수능력: 괭이\n\n필요부품:\n- 도끼 머리\n- 삽 머리\n-손잡이
+gui.toolstation.broadsword.desc=브로드소드는 방어형 검입니다.블로킹으로 데미지를 반으로 반감시켜줍니다.\n\n특수능력: 블럭\n데미지: 보통\n내구도: 높음\n\n필요부품:\n- 검날\n- 와이드가드\n- 손잡이
+gui.toolstation.longsword.desc=롱소드는 공격형 검입니다. 종종 최고속도로 전투를 합니다..\n\n기본효과:\n- 차지 부스트\n특수능력: 돌진\n\n데미지: 보통\n내구도: 보통
+gui.toolstation.rapier.desc=The Rapier is a special weapon that relies on quick strikes to defeat foes.\n\n기본효과:\n- 방어력 무시\n- 빠르게 찌름\n- 차지부스트\n특수능력:\n- 철회\n\n데미지: 낮음\n내구도: 낮음
+gui.toolstation.dagger.desc=The Dagger is a short blade that can be thrown.\n\n특수능력:\n- 던지기\n\n데미지: 낮음\n내구도: 보통\n\n필요부품:\n- 나이프 날\n- 크로스바\n-손잡이
+gui.toolstation.fryingpan.desc=The Frying Pan is a heavy weapon that uses sheer weight to stun foes.\n\n특수능력: 블럭\n기본능력: 무거움\n쉬프트클릭: 땅에 놓기\n데미지: 낮음\n내구도: 높음\n\n필요부품:\n- 팬\n-손잡이
+gui.toolstation.battlesign.desc=The Battlesign is an advance in weapon technology worthy of Zombie Pigmen everywhere.\n\n특수능력:\n데미지 반사\n\n기본능력: 하양\n\n데미지: 낮음\n내구도: 높음
+gui.toolstation.chisel.desc=The Chisel is a utility tool that carves shapes into blocks.\n\n기본능력:\n- 제작용아이템\n특수능력: 정\n내구도: 높음\n\n필요부품:\n- 정 머리\n-손잡이
+gui.toolstation.shortbow.desc=The Shortbow is a ranged weapon. It fires arrows quickly and precisely at its foes.\n\n활시위 속도: 빠름\n\n필요부품:\n- 도구 막대기\n- 활실\n- 도구 막대기
+gui.toolstation.arrow.desc=Arrows are projectiles usually fired from bows.\n\n필요부품:\n- 화살머리\n- 도구 막대리\n- 깃털
+gui.toolstation.hammer.desc=The Hammer is a broad mining tool. It harvests blocks in a wide range and is effective against undead.\n\n기본효과:\n범위공격\n- (3x3)\n- 스마이트\n\n내구도: 높음
+gui.toolstation.lumberaxe.desc=The Lumber Axe is a broad chopping tool. It can fell entire trees or gather wood in a wide range.\n\n기본효과:\n범위공격\n- 챱트리\n- (3x3x3)\n\n내구도: 높음
+gui.toolstation.excavator.desc=The Excavator is a broad digging tool. It harvests soil and snow in a wide range.\n\n기본능력:\n- 범위공격\n- (3x3)\n\n내구도: 높음
+gui.toolstation.scythe.desc=The Scythe is a broad reaping tool. It is effective on plants and attacks enemies in a wide range.\n\n기본능력:\n범위능력\n- (3x3x3)\n\n내구도: 높음\n데미지: 낮음, AoE
+gui.toolstation.cleaver.desc=The Cleaver is a heavy defensive weapon. It has powerful strikes, but is difficult to wield.\n\n특수능력: 블럭\n기본능력:\n- 참수\n\n데미지: 높음\n내구도: 높음
+gui.toolstation.battleaxe.desc=The Battleaxe is a heavy offensive weapon. It is capable of bringing down small trees and can send foes flying.\n\n특수능력: 블럭\n기본효과:\n- 밀치기\n- 광역효과\n- (1x9)\n\n데미지: 높음\n내구도: 높음
+
+material.wood=나무
+material.wood.display=나무
+material.stone=돌
+material.stone.ability=돌같음
+material.iron=철
+material.flint=부싯돌
+material.cactus=선인장
+material.cactus.ability=뾰족뾰족
+material.bone=뼈
+material.obsidian=흑요석
+material.netherrack=네더랙
+material.netherrack.ability=돌같음
+material.slime=슬라임
+material.slime.ability=점액질
+material.paper=종이
+material.paper.ability=순백색
+material.blueslime=푸른 슬라임
+material.blueslime.display=슬라임
+material.blueslime.ability=점액질
+material.cobalt=코발트
+material.ardite=아르다이트
+material.ardite.ability=돌같음
+material.manyullyn=마뉼린
+material.copper=구리
+material.bronze=청동
+material.alumite=알루마이트
+material.steel=강철
+material.pigiron=돼지 선철
+material.pigiron.ability=뫄이쩡!
+material.thaumium=사우뮴
+material.thaumium.ability=사우믹
 
 gui.modifier.blaze=화염
 gui.modifier.silk=섬세한 손길
@@ -815,12 +853,34 @@ modifier.tool.lava=자동 제련
 modifier.tool.necro=위더
 modifier.tool.beheading=참수
 
-materialtraits.stonebound=스톤바운드
-materialtraits.jagged=뾰족뾰족한
-materialtraits.writable=추가 업그레이드
-materialtraits.tasty=맛있는
-materialtraits.thaumic=마법적인
+creativeModLock.tooltip=적용 대상: 
 
-creativeModLock.tooltip=잠금 대상: 
+attribute.name.ammo.attackDamage=평균 데미지
 
-attribute.name.ammo.attackDamage=평균 명중 데미지
+tool.pickaxe=곡괭이
+tool.shovel=삽
+tool.hatchet=도끼
+tool.broadsword=브로드소드
+tool.longsword=장검
+tool.rapier=레이피어
+tool.dagger=단검
+tool.cutlass=커틀러스
+tool.fryingpan=프라이팬
+tool.battlesign=전투용 표지판
+tool.mattock=아전삽
+tool.chisel=정
+tool.lumberaxe=벌목용 도끼
+tool.cleaver=클리버
+tool.scythe=낫
+tool.excavator=굴착기
+tool.hammer=망치
+tool.battleaxe=전투 도끼
+tool.shortbow=숏보우
+tool.arrow=화살
+
+# Customization of default tool names based on tool and material
++#tool.shovel.wood=Wooden Shovel
+
+tool.kingslimeprefix=킹 슬라임
+# Specific localization like materials
+#tool.shovel.kingslime=Regret

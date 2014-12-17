@@ -4,8 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import tconstruct.library.crafting.PatternBuilder;
 import tconstruct.library.modifier.ItemModifier;
-import tconstruct.library.tools.AbilityHelper;
-import tconstruct.library.tools.ToolCore;
+import tconstruct.library.tools.*;
 
 /* Little mod for actually adding the lapis modifier */
 
@@ -80,11 +79,11 @@ public class ModRepair extends ItemModifier
         int modifiers = tags.getInteger("Modifiers");
         float mods = 1.0f;
         if (modifiers == 2)
-            mods = 0.8f;
+            mods = 0.9f;
         else if (modifiers == 1)
-            mods = 0.6f;
+            mods = 0.8f;
         else if (modifiers == 0)
-            mods = 0.4f;
+            mods = 0.7f;
 
         increase *= mods;
 

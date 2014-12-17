@@ -1,12 +1,10 @@
 package tconstruct.plugins.waila;
 
-import mcp.mobius.waila.api.IWailaConfigHandler;
-import mcp.mobius.waila.api.IWailaDataAccessor;
-import mcp.mobius.waila.api.IWailaDataProvider;
-import net.minecraft.item.ItemStack;
-import tconstruct.smeltery.logic.CastingTableLogic;
-
 import java.util.List;
+import mcp.mobius.waila.api.*;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
+import tconstruct.smeltery.logic.CastingTableLogic;
 
 public class TableDataProvider implements IWailaDataProvider
 {
@@ -36,12 +34,12 @@ public class TableDataProvider implements IWailaDataProvider
             CastingTableLogic te = (CastingTableLogic) accessor.getTileEntity();
             if (te.getStackInSlot(1) != null)
             {
-                currenttip.add("Contains: " + te.getStackInSlot(1).getDisplayName());
+                currenttip.add(StatCollector.translateToLocal("tconstruct.waila.contains") + te.getStackInSlot(1).getDisplayName());
             }
             if (te.getFluid() != null)
             {
-                currenttip.add("Fluid: " + WailaRegistrar.fluidNameHelper(te.getFluid()));
-                currenttip.add("Amount: " + te.getFluidAmount() + "/" + te.getCapacity());
+                currenttip.add(StatCollector.translateToLocal("tconstruct.waila.liquidtag") + WailaRegistrar.fluidNameHelper(te.getFluid()));
+                currenttip.add(StatCollector.translateToLocal("tconstruct.waila.amounttag") + te.getFluidAmount() + "/" + te.getCapacity());
             }
         }
         return currenttip;

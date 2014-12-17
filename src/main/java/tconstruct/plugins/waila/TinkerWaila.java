@@ -1,14 +1,12 @@
 package tconstruct.plugins.waila;
 
-import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.registry.GameRegistry.ObjectHolder;
-import cpw.mods.fml.common.event.FMLInterModComms;
-import mantle.pulsar.pulse.Handler;
-import mantle.pulsar.pulse.Pulse;
+import mantle.pulsar.pulse.*;
 import tconstruct.TConstruct;
 
 @ObjectHolder(TConstruct.modID)
-@Pulse(id = "Tinkers Waila Compatibility", description = "Tinkers Construct compatibility for Waila", modsRequired = "Waila")
+@Pulse(id = "Tinkers Waila Compatibility", description = "Tinkers Construct compatibility for Waila", modsRequired = "Waila", forced = true)
 public class TinkerWaila
 {
     @Handler

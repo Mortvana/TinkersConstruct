@@ -1,23 +1,12 @@
 package tconstruct;
 
-import java.util.Map;
-import java.util.Random;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import net.minecraft.world.gen.structure.MapGenStructureIO;
-import net.minecraftforge.common.MinecraftForge;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -25,11 +14,18 @@ import cpw.mods.fml.common.registry.VillagerRegistry;
 import cpw.mods.fml.relauncher.Side;
 import mantle.pulsar.config.ForgeCFG;
 import mantle.pulsar.control.PulseManager;
+import net.minecraft.world.gen.structure.MapGenStructureIO;
+import net.minecraftforge.common.MinecraftForge;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import tconstruct.achievements.AchievementEvents;
+import tconstruct.achievements.TAchievements;
+import tconstruct.api.TConstructAPI;
 import tconstruct.armor.TinkerArmor;
 import tconstruct.armor.player.TPlayerHandler;
-import tconstruct.client.TControls;
-import tconstruct.common.TConstructCreativeTab;
+import tconstruct.armor.player.TPlayerStats;
 import tconstruct.common.TProxyCommon;
+import tconstruct.library.TConstructCreativeTab;
 import tconstruct.library.TConstructRegistry;
 import tconstruct.library.crafting.Detailing;
 import tconstruct.library.crafting.LiquidCasting;
@@ -40,20 +36,23 @@ import tconstruct.plugins.ic2.TinkerIC2;
 import tconstruct.plugins.imc.TinkerAE2;
 import tconstruct.plugins.imc.TinkerBuildCraft;
 import tconstruct.plugins.imc.TinkerMystcraft;
-import tconstruct.plugins.imc.TinkerThaumcraft;
+import tconstruct.plugins.TinkerThaumcraft;
 import tconstruct.plugins.mfr.TinkerMFR;
-import tconstruct.plugins.nei.TinkerNEI;
 import tconstruct.plugins.te4.TinkerTE4;
 import tconstruct.plugins.waila.TinkerWaila;
 import tconstruct.smeltery.TinkerSmeltery;
 import tconstruct.tools.TinkerTools;
 import tconstruct.util.EnvironmentChecks;
+import tconstruct.util.IMCHandler;
 import tconstruct.util.config.DimensionBlacklist;
 import tconstruct.util.config.PHConstruct;
 import tconstruct.util.network.PacketPipeline;
 import tconstruct.world.TinkerWorld;
 import tconstruct.world.gen.SlimeIslandGen;
 import tconstruct.world.village.*;
+
+import java.util.Map;
+import java.util.Random;
 
 /**
  * TConstruct, the tool mod. Craft your tools with style, then modify until the
@@ -62,23 +61,26 @@ import tconstruct.world.village.*;
  * @author mDiyo
  */
 
-@Mod(modid = "TConstruct", name = "TConstruct", version = "1.6.0d37",
-        dependencies = "required-after:Forge@[10.13,);required-after:Mantle;after:MineFactoryReloaded;after:NotEnoughItems;after:Waila;after:ThermalExpansion")
+@Mod(modid = "TConstruct", name = "TConstruct", version = "${version}",
+        dependencies = "required-after:Forge@[10.13.0.1200,);required-after:Mantle@[0.3.1,);after:MineFactoryReloaded;after:NotEnoughItems;after:Waila;after:ThermalExpansion;after:ThermalFoundation")
 public class TConstruct
 {
-    public static final String modVersion = "1.6.0d37";
+    public static final String modVersion = "${version}";
     /** The value of one ingot in millibuckets */
     public static final int ingotLiquidValue = 144;
     public static final int oreLiquidValue = ingotLiquidValue * 2;
     public static final int blockLiquidValue = ingotLiquidValue * 9;
     public static final int chunkLiquidValue = ingotLiquidValue / 2;
     public static final int nuggetLiquidValue = ingotLiquidValue / 9;
+    public static final int stoneLiquidValue = ingotLiquidValue/8;
 
     public static final int liquidUpdateAmount = 6;
     public static final String modID = "TConstruct";
     public static final Logger logger = LogManager.getLogger(modID);
     public static final PacketPipeline packetPipeline = new PacketPipeline();
     public static Random random = new Random();
+    
+
 
     /* Instance of this mod, used for grabbing prototype fields */
     @Instance(modID)
@@ -88,7 +90,7 @@ public class TConstruct
     public static TProxyCommon proxy;
 
     /* Loads modules in a way that doesn't clutter the @Mod list */
-    private PulseManager pulsar = new PulseManager(modID, new ForgeCFG("TinkersModules", "Modules: Disabling these will disable a chunk of the mod"));
+    public static PulseManager pulsar = new PulseManager(modID, new ForgeCFG("TinkersModules", "Modules: Disabling these will disable a chunk of the mod"));
 
     public TConstruct()
     {
@@ -122,7 +124,6 @@ public class TConstruct
         pulsar.registerPulse(new TinkerSmeltery());
         pulsar.registerPulse(new TinkerMechworks());
         pulsar.registerPulse(new TinkerArmor());
-        pulsar.registerPulse(new TinkerNEI());
         pulsar.registerPulse(new TinkerThaumcraft());
         pulsar.registerPulse(new TinkerWaila());
         pulsar.registerPulse(new TinkerBuildCraft());
@@ -152,12 +153,12 @@ public class TConstruct
         MinecraftForge.EVENT_BUS.register(playerTracker);
         NetworkRegistry.INSTANCE.registerGuiHandler(TConstruct.instance, proxy);
 
-        if (event.getSide() == Side.CLIENT)
-        {
-            FMLCommonHandler.instance().bus().register(new TControls());
-        }
-
         pulsar.preInit(event);
+
+        if (PHConstruct.achievementsEnabled)
+        {
+            TAchievements.addDefaultAchievements();
+        }
 
         if (PHConstruct.addToVillages)
         {
@@ -170,6 +171,8 @@ public class TConstruct
             MapGenStructureIO.func_143031_a(ComponentToolWorkshop.class, "TConstruct:ToolWorkshopStructure");
             MapGenStructureIO.func_143031_a(ComponentSmeltery.class, "TConstruct:SmelteryStructure");
         }
+
+        TConstructAPI.PROP_NAME = TPlayerStats.PROP_NAME;
     }
 
     @EventHandler
@@ -196,6 +199,25 @@ public class TConstruct
 
         proxy.initialize();
         pulsar.postInit(event);
+
+        if (PHConstruct.achievementsEnabled)
+        {
+            TAchievements.registerAchievementPane();
+            MinecraftForge.EVENT_BUS.register(new AchievementEvents());
+        }
+    }
+
+    /* IMC Mod Support */
+    @EventHandler
+    public void handleIMC(FMLInterModComms.IMCEvent e)
+    {
+        IMCHandler.processIMC(e.getMessages());
+    }
+
+    @EventHandler
+    public void loadComplete(FMLLoadCompleteEvent evt)
+    {
+        IMCHandler.processIMC(FMLInterModComms.fetchRuntimeMessages(this));
     }
 
     public static LiquidCasting getTableCasting ()

@@ -2,8 +2,7 @@ package tconstruct.tools.inventory;
 
 import mantle.blocks.abstracts.InventoryLogic;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 
 public class InventoryCraftingStation extends InventoryCrafting
@@ -38,7 +37,8 @@ public class InventoryCraftingStation extends InventoryCrafting
     @Override
     public ItemStack getStackInSlot (int slot)
     {
-        return slot >= this.getSizeInventory() + 1 ? null : logic.getStackInSlot(slot + 1);
+        // the 9 slots + 1 output slot that's not accessible, we therefore have to add 1 to the slot accessed
+        return slot >= this.getSizeInventory() ? null : logic.getStackInSlot(slot+1);
     }
 
     @Override

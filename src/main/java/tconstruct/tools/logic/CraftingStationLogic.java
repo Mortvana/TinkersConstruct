@@ -1,16 +1,11 @@
 package tconstruct.tools.logic;
 
 import java.lang.ref.WeakReference;
-
 import mantle.blocks.abstracts.InventoryLogic;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraft.tileentity.*;
 import net.minecraft.world.World;
 import tconstruct.tools.inventory.CraftingStationContainer;
 
@@ -26,7 +21,7 @@ public class CraftingStationLogic extends InventoryLogic implements ISidedInvent
 
     public CraftingStationLogic()
     {
-        super(17); // 9 for crafting, 1 for output, 6 for extensions, 1 for
+        super(10); // 9 for crafting, 1 for output, 6 for extensions, 1 for
                    // plans
     }
 
@@ -38,7 +33,7 @@ public class CraftingStationLogic extends InventoryLogic implements ISidedInvent
         patternChest = null;
         furnace = null;
         tinkerTable = false;
-        int[] ys = {y, y - 1, y + 1};
+        int[] ys = { y, y - 1, y + 1 };
         for (byte iy = 0; iy < 3; iy++)
         {
             int yPos = ys[iy];
@@ -95,7 +90,7 @@ public class CraftingStationLogic extends InventoryLogic implements ISidedInvent
     @Override
     public int[] getAccessibleSlotsFromSide (int var1)
     {
-        return new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+        return new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     }
 
     @Override
@@ -103,7 +98,7 @@ public class CraftingStationLogic extends InventoryLogic implements ISidedInvent
     {
         return i != 0;
     }
-    
+
     @Override
     public ItemStack decrStackSize (int slot, int quantity)
     {
@@ -118,7 +113,7 @@ public class CraftingStationLogic extends InventoryLogic implements ISidedInvent
     @Override
     public boolean canExtractItem (int i, ItemStack itemstack, int j)
     {
-        return i == 0;
+        return false;
     }
 
     @Override

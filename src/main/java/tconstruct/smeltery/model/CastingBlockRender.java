@@ -1,5 +1,6 @@
 package tconstruct.smeltery.model;
 
+import cpw.mods.fml.client.registry.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.item.ItemStack;
@@ -9,12 +10,8 @@ import tconstruct.TConstruct;
 import tconstruct.client.BlockSkinRenderHelper;
 import tconstruct.library.crafting.CastingRecipe;
 import tconstruct.smeltery.TinkerSmeltery;
-import tconstruct.smeltery.logic.CastingBasinLogic;
-import tconstruct.smeltery.logic.CastingTableLogic;
-import tconstruct.smeltery.logic.FaucetLogic;
+import tconstruct.smeltery.logic.*;
 import tconstruct.util.ItemHelper;
-import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class CastingBlockRender implements ISimpleBlockRenderingHandler
 {
@@ -199,7 +196,7 @@ public class CastingBlockRender implements ISimpleBlockRenderingHandler
                         renderer.setRenderBounds(minX, minHeight, minZ, maxX, minHeight + height, maxZ);
 
                         Fluid fluid = logic.liquid.getFluid();
-                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world);
+                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world, false, fluid.getColor(logic.liquid));
                     }
                 }
             }
@@ -257,15 +254,15 @@ public class CastingBlockRender implements ISimpleBlockRenderingHandler
                     float yMin = 0F;
                     Block uBlock = world.getBlock(x, y - 1, z);
                     int uMeta = world.getBlockMetadata(x, y - 1, z);
-                    if (uBlock == TinkerSmeltery.searedBlock && uMeta == 0)
+                    if ((uBlock == TinkerSmeltery.searedBlock || uBlock == TinkerSmeltery.searedBlockNether) && uMeta == 0)
                     {
                         yMin = -0.125F;
                     }
-                    else if (uBlock == TinkerSmeltery.searedBlock && uMeta == 2)
+                    else if ((uBlock == TinkerSmeltery.searedBlock || uBlock == TinkerSmeltery.searedBlockNether) && uMeta == 2)
                     {
                         yMin = -0.75F;
                     }
-                    else if (uBlock == TinkerSmeltery.lavaTank)
+                    else if (uBlock == TinkerSmeltery.lavaTank || uBlock == TinkerSmeltery.lavaTankNether)
                     {
                         yMin = -1F;
                     }
@@ -278,7 +275,7 @@ public class CastingBlockRender implements ISimpleBlockRenderingHandler
                     {
                         Fluid fluid = logic.liquid.getFluid();
                         renderer.setRenderBounds(xMin, yMin, zMin, xMax, 0.625, zMax);
-                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world);
+                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world, false, fluid.getColor(logic.liquid));
 
                         // float xMin = 0.375F, zMin = 0.375F, xMax = 0.625F,
                         // zMax = 0.625F;
@@ -302,7 +299,7 @@ public class CastingBlockRender implements ISimpleBlockRenderingHandler
                             break;
                         }
                         renderer.setRenderBounds(xMin, 0.5F, zMin, xMax, 0.625F, zMax);
-                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world);
+                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world, false, fluid.getColor(logic.liquid));
                     }
                 }
             }
@@ -406,7 +403,7 @@ public class CastingBlockRender implements ISimpleBlockRenderingHandler
                         renderer.setRenderBounds(minX, minHeight, minZ, maxX, minHeight + height, maxZ);
 
                         Fluid fluid = logic.liquid.getFluid();
-                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world);
+                        BlockSkinRenderHelper.renderLiquidBlock(fluid.getStillIcon(), fluid.getFlowingIcon(), x, y, z, renderer, world, false, fluid.getColor(logic.liquid));
                     }
                 }
             }

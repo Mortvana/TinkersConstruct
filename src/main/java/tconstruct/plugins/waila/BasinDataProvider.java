@@ -1,13 +1,11 @@
 package tconstruct.plugins.waila;
 
-import mcp.mobius.waila.api.IWailaConfigHandler;
-import mcp.mobius.waila.api.IWailaDataAccessor;
-import mcp.mobius.waila.api.IWailaDataProvider;
+import java.util.List;
+import mcp.mobius.waila.api.*;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.fluids.FluidStack;
 import tconstruct.smeltery.logic.CastingBasinLogic;
-
-import java.util.List;
 
 public class BasinDataProvider implements IWailaDataProvider
 {
@@ -37,18 +35,18 @@ public class BasinDataProvider implements IWailaDataProvider
             if (te.getFluidAmount() != 0)
             {
                 FluidStack fs = te.getFluid();
-                currenttip.add("Liquid: " + WailaRegistrar.fluidNameHelper(fs));
-                currenttip.add("Amount: " + fs.amount + "/" + te.getCapacity());
+                currenttip.add(StatCollector.translateToLocal("tconstruct.waila.liquidtag") + WailaRegistrar.fluidNameHelper(fs));
+                currenttip.add(StatCollector.translateToLocal("tconstruct.waila.amounttag") + fs.amount + "/" + te.getCapacity());
             }
             else
             {
                 if (te.getStackInSlot(0) != null)
                 {
-                    currenttip.add("Contains: " + te.getStackInSlot(0).getDisplayName());
+                    currenttip.add(StatCollector.translateToLocal("tconstruct.waila.contains") + te.getStackInSlot(0).getDisplayName());
                 }
                 else
                 {
-                    currenttip.add("§oEmpty"); // "§o" == Italics
+                    currenttip.add(SpecialChars.ITALIC + StatCollector.translateToLocal("tconstruct.waila.empty"));
                 }
             }
         }
